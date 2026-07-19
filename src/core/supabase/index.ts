@@ -1,4 +1,4 @@
 export { createSupabaseBrowserClient } from "./browser";
 export { createSupabaseServerClient } from "./server";
 export { createSupabaseServiceRoleClient } from "./service-role";
-export type { Database } from "./types";
+export type { Database, UserRole, LotStatus } from "./types";

@@ -76,19 +76,32 @@ Al reactivar `no-explicit-any` y `no-console` en ESLint aparecieron **39 errores
 
 No se corrigió para no mezclar un refactor grande de UI compartida con la tarea de hoy (regla de CLAUDE.md: modificar la menor cantidad posible de archivos). Se limpia módulo por módulo conforme se toque cada componente, o en una tarea dedicada si se prefiere antes.
 
-## Fase 2 — Base de datos (pendiente)
+<!-- Eliminado el bloque duplicado y obsoleto "Fase 2 (pendiente)": la Fase 2 quedó
+     completa (ver sección de arriba). El usuario ya levantó el proyecto Supabase,
+     aplicó las migraciones y creó su admin. -->
 
-- [ ] Carpeta `supabase/` en la raíz: `migrations/`, `seeds/`, `functions/`, `policies/`, `storage/`, `types/`, `README.md`
-- [ ] Migración `001_initial.sql`: `tenants`, `profiles`, enum de roles (`ADMIN`, `RESIDENT`, `GUARD`, `SUPER_ADMIN`)
-- [ ] RLS habilitado + policies base (SELECT/INSERT/UPDATE/DELETE) desde la primera migración
-- [ ] Jerarquía `tenants → stages → streets → blocks → lots → residents` (según `database.md`)
+## Fase 3 — Módulo Auth
 
-## Fase 3 — Módulo Auth (pendiente)
+- [x] `modules/auth/` completo siguiendo el flujo `UI → Action → Service → Repository → Supabase`: schemas (Zod), errores tipados (`InvalidCredentialsError`, `SessionError`), repositories (`auth`, `profile`), mapper de sesión, services (`login`, `logout`, `requestPasswordReset`, `updatePassword`, `getCurrentSession`), actions y componentes cliente (RHF + Zod). Todo sobre Supabase Auth, nunca sesión manual en localStorage.
+- [x] Login real (`app/(auth)/login`), recuperación (`app/(auth)/forgot-password`) y restablecimiento (`app/reset-password`) + `app/auth/callback/route.ts` (intercambio de código de recuperación por sesión).
+- [x] `LogOutBtn` reescrito: usa `logoutAction` (Server Action) con `useTransition`; Supabase invalida sesión y limpia cookies.
+- [x] `src/proxy.ts` protege rutas: refresca sesión y redirige a `/login` toda ruta protegida sin usuario. La redirección inversa (sesión → dashboard) la hace `app/(auth)/layout.tsx` con la sesión completa, para evitar bucles.
+- [x] Route Groups introducidos: `(auth)` (redirige a dashboard si hay sesión) y `(dashboard)` (exige sesión, defense in depth sobre el proxy). `/` redirige a `/dashboard`.
+- [x] `core/types/action-result.ts` — contrato `ActionResult<T>` de retorno de toda Action.
+- [x] `core/supabase/types.ts` — tipado a mano de `profiles` + enums (`UserRole`, `LotStatus`) para no usar `any`; se reemplaza por `supabase gen types` (ver pendiente de Fase 2).
+- [x] Verificación: `pnpm build` verde (TypeScript sin errores, rutas `/`, `/login`, `/forgot-password`, `/reset-password`, `/dashboard`, `/auth/callback` y Proxy reconocido); ESLint limpio en todo lo tocado. Se corrigió de paso `src/app/error.tsx` (usaba `console`, ahora usa el logger).
 
-- [ ] `modules/auth/` completo: login, recuperación de contraseña, usando Supabase Auth (nunca sesión manual en localStorage)
-- [ ] Reemplazar `LogOutBtn` para usar Server Action de logout real
-- [ ] Conectar `src/middleware.ts` con protección real de rutas por sesión/rol/tenant
-- [ ] Implementar `src/app/login/page.tsx` (hoy vacío)
+### Decisiones / notas de Fase 3
+
+- **Frontera cliente/servidor:** el módulo expone `index.ts` (cliente-seguro: actions, componentes, constantes, tipos) y `server.ts` (server-only: `getCurrentSession`). Separados porque `getCurrentSession` depende de `server-only` y no debe entrar al bundle del cliente. Ambos son "índices públicos" (no se importan archivos internos).
+- **Sesión = auth + perfil activo:** un usuario de Supabase Auth sin fila en `profiles` (o inactivo) NO es sesión válida. `getCurrentSession` devuelve `null` (no lanza) para que los layouts redirijan sin bucles; `loginService` cierra la sesión si la cuenta no tiene perfil activo.
+- **Sesión falsa del sidebar (era Fase 5):** ya se eliminó `{ username: "Operador", role: "Admin" }`; `AppLayout`/`SidebarContent` reciben `user` por props y `(dashboard)/layout.tsx` pasa la sesión real. Queda de Fase 5 solo el `NavItem[]` dinámico por rol.
+
+### Pendiente de Fase 3 (requiere validación del usuario en su Supabase)
+
+- [ ] **Probar el flujo end-to-end** en `pnpm dev` con el admin real: login → dashboard, logout, "olvidé mi contraseña" → correo → callback → nueva contraseña.
+- [ ] En Supabase (Auth → URL Configuration) agregar la URL de callback a los *Redirect URLs* permitidos (ej. `http://localhost:3000/auth/callback`), o el correo de recuperación fallará silenciosamente.
+- [ ] Rate limiting propio para login/recuperación (hoy se apoya en los límites de Supabase Auth) y registro de login/logout en `audit_log` — se integran en Fase 4.
 
 ## Fase 4 — Módulos del MVP (pendiente, uno a la vez)
 
@@ -105,9 +118,9 @@ No se corrigió para no mezclar un refactor grande de UI compartida con la tarea
 
 Patrón confirmado por el usuario: `AppLayout` (en `src/components/layouts/Sidebar.tsx`) es el shell reutilizable real; `AdminLayout` es solo un ejemplo de uso con `NavItem[]` fijos. Se sigue este patrón para las páginas de módulos; se abstrae más solo si un módulo lo requiere.
 
-- [ ] Sustituir la sesión falsa (`{ username: "Operador", role: "Admin" }`) en `SidebarContent` por la sesión real de Supabase
-- [ ] `NavItem[]` dinámico según permisos del usuario/rol, no hardcodeado en `AdminLayout`
-- [ ] Revisar Route Groups: `(auth)`, `(dashboard)`, `(public)`
+- [x] Sustituir la sesión falsa (`{ username: "Operador", role: "Admin" }`) en `SidebarContent` por la sesión real de Supabase — hecho en Fase 3 (`AppLayout` recibe `user` por props).
+- [ ] `NavItem[]` dinámico según permisos del usuario/rol, no hardcodeado (hoy `(dashboard)/layout.tsx` tiene un menú fijo con solo "Inicio")
+- [x] Route Groups `(auth)` y `(dashboard)` creados en Fase 3. Pendiente `(public)` si aparece contenido público.
 
 ## Fase 6 — `.ai/` pendiente
 

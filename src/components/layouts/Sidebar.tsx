@@ -49,12 +49,18 @@ export interface NavItem {
   onPress?: () => void;
 }
 
+export interface SidebarUser {
+  name: string;
+  role: string;
+}
+
 interface AppLayoutProps {
   children: React.ReactNode;
   items: NavItem[];
   brand: string;
   brandLetter?: string;
   notifications?: number;
+  user?: SidebarUser;
 }
 
 // ─── Animated label ───────────────────────────────────────────────────────────
@@ -160,18 +166,18 @@ const SidebarContent = ({
   brandLetter,
   collapsed,
   onNavigate,
+  user,
 }: {
   items: NavItem[];
   brand: string;
   brandLetter?: string;
   collapsed: boolean;
   onNavigate?: () => void;
+  user?: SidebarUser;
 }) => {
   const [search, setSearch] = useState("");
-  const { session } = {
-    session: { username: "Operador", role: "Admin" },
-  };
-  const userName = session?.username ?? "Operador";
+  const userName = user?.name ?? "Usuario";
+  const userRole = user?.role ?? "";
   const letter = brandLetter ?? brand.charAt(0).toUpperCase();
 
   const filtered = search.trim()
@@ -259,7 +265,7 @@ const SidebarContent = ({
               {userName}
             </span>
             <span className="text-[10px] text-sidebar-foreground/45 truncate capitalize leading-tight mt-0.5 whitespace-nowrap">
-              {session?.role?.toLowerCase() ?? ""}
+              {userRole.toLowerCase()}
             </span>
           </div>
 
@@ -334,6 +340,7 @@ const AppLayout = ({
   brand,
   brandLetter,
   notifications = 0,
+  user,
 }: AppLayoutProps) => {
   const [collapsed, setCollapsed] = useState(
     () =>
@@ -349,7 +356,7 @@ const AppLayout = ({
     });
   };
 
-  const sharedProps = { items, brand, brandLetter };
+  const sharedProps = { items, brand, brandLetter, user };
 
   return (
     <TooltipProvider delayDuration={100}>

@@ -1,20 +1,29 @@
-import { Button } from "../ui/button";
-import { LogOut } from "lucide-react";
-import useAsyncPromise from "@/hooks/useAsyncPromise";
+"use client";
 
+import { useTransition } from "react";
+import { LogOut } from "lucide-react";
+import { Button } from "../ui/button";
+import { logoutAction } from "@/modules/auth";
+
+/**
+ * Cierra la sesión vía Server Action (Supabase Auth invalida la sesión y limpia cookies).
+ * `useTransition` evita bloquear la UI mientras corre la acción, que además redirige a /login.
+ */
 const LogOutBtn = ({ iconOnly = false }: { iconOnly?: boolean }) => {
-  const { isLoading, wrapperFunction } = useAsyncPromise("LogOutBtn");
+  const [isPending, startTransition] = useTransition();
 
   const logOut = () => {
-    wrapperFunction(async () => {});
+    startTransition(async () => {
+      await logoutAction();
+    });
   };
 
   return iconOnly ? (
     <button
       onClick={logOut}
-      disabled={isLoading}
+      disabled={isPending}
       aria-label="Cerrar sesión"
-      className="flex h-8 w-8 items-center justify-center rounded-lg text-sidebar-foreground/50 hover:bg-white/10 hover:text-red-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+      className="flex h-8 w-8 items-center justify-center rounded-lg text-sidebar-foreground/50 hover:bg-white/10 hover:text-red-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring disabled:opacity-50"
     >
       <LogOut className="h-4 w-4" />
     </button>
@@ -24,7 +33,7 @@ const LogOutBtn = ({ iconOnly = false }: { iconOnly?: boolean }) => {
         variant="outline"
         className="text-red-600 dark:text-red-400"
         onClick={logOut}
-        disabled={isLoading}
+        disabled={isPending}
       >
         <LogOut className="mr-2 h-4 w-4" />
         Salir
