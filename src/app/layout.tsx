@@ -2,8 +2,8 @@ import "@/styles/globals.css";
 import Providers from "@/providers/Providers";
 
 export const metadata = {
-  title: "Aurora POS",
-  description: "Sistema POS",
+  title: "Fraccionamiento Manager",
+  description: "Administración de fraccionamientos privados",
 };
 
 export default function RootLayout({

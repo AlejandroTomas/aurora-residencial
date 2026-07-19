@@ -7,7 +7,14 @@ const eslintConfig = defineConfig([
   ...nextTs,
   {
     rules: {
-      "@typescript-eslint/no-explicit-any": "off",
+      "no-console": "error",
+    },
+  },
+  {
+    // Único lugar donde console.* es la implementación legítima del logger centralizado.
+    files: ["src/core/logger/**"],
+    rules: {
+      "no-console": "off",
     },
   },
   // Override default ignores of eslint-config-next.
