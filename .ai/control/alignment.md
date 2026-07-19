@@ -50,7 +50,29 @@ Motivo: `src/` venía de un template genérico de POS con Redux, axios y un "cif
 Al reactivar `no-explicit-any` y `no-console` en ESLint aparecieron **39 errores preexistentes** en componentes compartidos que ya existían antes de esta sesión, ninguno introducido por los cambios de hoy:
 - `any` sin tipar: `components/form/Select.tsx`, `components/form/AsyncSelect.tsx` (parcial), `hooks/useAsyncPromise.tsx`, `hooks/useDisclosure.tsx`, `types/interfaces/global.ts`
 - `console.*` directo en vez del logger: `hooks/useAsyncPromise.tsx`, `utils/dialogService.ts`, `components/form/AsyncSelect.tsx`
-- `tsc --noEmit` reporta módulos no instalados: `xlsx` (usado por `ExcelImportModal/steps/StepUploadFile.tsx`) y `react-icons` (usado por `constants/icons.ts`) — ninguno está en `package.json`; ninguno de los dos pertenece al MVP.
+- `tsc --noEmit` reporta módulos no instalados: `xlsx` (usado por `ExcelImportModal/steps/StepUploadFile.tsx`) y `react-icons` (usado por `constants/icons.ts`) — ~~ninguno está en `package.json`~~ **resuelto**: se instalaron ambos (ya se usaban en el código, sin ellos `next build` no compilaba — ver Fase 2).
+
+## Fase 2 — Base de datos
+
+- [x] Carpeta `supabase/` en la raíz: `migrations/`, `seeds/`, `functions/`, `policies/`, `storage/`, `types/`, `README.md`
+- [x] Migraciones `001`–`010`: extensiones/enums, `tenants`+`tenant_settings`, `profiles`, jerarquía `stages→streets→blocks→lots`, `residents`, `announcements`+`announcement_reads`, `documents`+`announcement_documents`, `audit_log`, RLS completo (helpers `current_tenant_id()`/`current_user_role()`/`is_admin()` + policies en las 13 tablas), Storage (bucket privado `tenant-files` + policies de `storage.objects`)
+- [x] RLS habilitado en las 13 tablas desde la primera migración que las crea; sin policy = bloqueado por defecto, nunca `using (true)`
+- [x] Jerarquía `tenants → stages → streets → blocks → lots → residents` implementada con FKs reales (nunca texto libre)
+- [x] `seeds/seed.sql` — tenant demo + jerarquía + 1 residente sin profile + 1 comunicado (documenta por qué no crea `auth.users` por SQL)
+- [x] Revisión manual línea por línea de las 10 migraciones (sin Docker/psql disponibles en este entorno para ejecutarlas de verdad — ver pendiente abajo)
+
+### Deuda / pendiente de Fase 2
+
+- [ ] **Ejecutar las migraciones contra un Postgres real** (proyecto Supabase o `supabase start` local) — no se pudo validar en este entorno por falta de Docker corriendo y sin `psql` instalado. Es lo primero que debe hacerse antes de escribir cualquier Server Action que toque estas tablas.
+- [ ] `supabase gen types typescript` una vez exista el proyecto real, para reemplazar el placeholder en `src/core/supabase/types.ts`
+
+### Decisiones tomadas sin especificación exacta en `database.md` (documentadas también en `supabase/README.md`)
+
+- `tenant_settings` separado de `tenants` (identidad vs. configuración mutable), sigue siendo "una sola tabla" de config.
+- `audit_log` se llena desde el Service (Fase 4), no con trigger de Postgres — `ip`/`user_agent` no existen dentro de un trigger.
+- Vehículos y Eventos (documentados en `database.md` como modelo general) no se crearon: no están en el MVP de `CLAUDE.md`. El modelo no les cierra el paso a futuro.
+- Roles como `enum` (`user_role`), no como tabla catálogo — `database.md` los menciona en ambos lugares; se priorizó la regla explícita "`Roles: Definir mediante Enum`" por ser más específica y crítica para las policies de RLS.
+- `documents` usa `announcement_documents` como única tabla de unión por ahora (Documento↔Comunicado); Documento↔Residente y Documento↔Evento se agregan cuando esos módulos entren al roadmap.
 
 No se corrigió para no mezclar un refactor grande de UI compartida con la tarea de hoy (regla de CLAUDE.md: modificar la menor cantidad posible de archivos). Se limpia módulo por módulo conforme se toque cada componente, o en una tarea dedicada si se prefiere antes.
 
