@@ -5,6 +5,11 @@ import "server-only";
  * handlers y otros Services (nunca componentes cliente). Separada de `index.ts`
  * porque `getCurrentSession` depende de `server-only` y no debe llegar al cliente.
  */
-export { getCurrentSession } from "./services";
+export {
+  getCurrentSession,
+  requireSession,
+  requireAdmin,
+  isAdminRole,
+} from "./services";
 export { AUTH_ROUTES } from "./constants";
 export type { AuthSession } from "./types";

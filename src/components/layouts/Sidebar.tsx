@@ -19,7 +19,11 @@ import {
   Home,
   Boxes,
   Users,
+  User,
   FileText,
+  Megaphone,
+  Settings,
+  Building2,
   Shield,
   ShieldAlert,
 } from "lucide-react";
@@ -28,19 +32,17 @@ const icons = {
   home: Home,
   boxes: Boxes,
   users: Users,
+  user: User,
   fileText: FileText,
+  megaphone: Megaphone,
+  settings: Settings,
+  building: Building2,
   shield: Shield,
   shieldAlert: ShieldAlert,
 } as const;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-export type IconName =
-  | "home"
-  | "boxes"
-  | "users"
-  | "fileText"
-  | "shield"
-  | "shieldAlert";
+export type IconName = keyof typeof icons;
 
 export interface NavItem {
   label: string;

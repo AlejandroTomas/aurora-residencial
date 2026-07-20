@@ -1,4 +1,9 @@
 export { getCurrentSession } from "./get-session.service";
+export {
+  requireSession,
+  requireAdmin,
+  isAdminRole,
+} from "./require-session.service";
 export { loginService } from "./login.service";
 export { logoutService } from "./logout.service";
 export { requestPasswordResetService } from "./request-password-reset.service";

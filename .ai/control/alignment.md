@@ -103,23 +103,36 @@ No se corrigió para no mezclar un refactor grande de UI compartida con la tarea
 - [ ] En Supabase (Auth → URL Configuration) agregar la URL de callback a los *Redirect URLs* permitidos (ej. `http://localhost:3000/auth/callback`), o el correo de recuperación fallará silenciosamente.
 - [ ] Rate limiting propio para login/recuperación (hoy se apoya en los límites de Supabase Auth) y registro de login/logout en `audit_log` — se integran en Fase 4.
 
-## Fase 4 — Módulos del MVP (pendiente, uno a la vez)
+## Fase 4 — Módulos del MVP
 
-- [ ] `modules/tenants`
-- [ ] `modules/users`
-- [ ] `modules/residents`
-- [ ] `modules/announcements`
-- [ ] `modules/dashboard` — implementar `src/app/dashboard/page.tsx` (hoy vacío)
-- [ ] `modules/profile`
-- [ ] `modules/settings`
-- [ ] `modules/notifications` (estructura preparada, aunque el MVP no la use completa)
+Todos siguen el flujo `UI → Action → Service → Repository → Supabase`, con `permissions/` por
+módulo, DTO+mapper, errores tipados, auditoría en cada escritura y `index.ts` (cliente) + `server.ts`
+(server-only). Verificado: `pnpm typecheck`, `pnpm build` (13 rutas) y ESLint, todo limpio.
+
+- [x] **Foundation compartida**: `Database` tipado a mano de las 14 tablas + enums (reemplazable por `supabase gen types`); `core/types` paginación (`ActionResult`, `Paginated`, `toRange`); `requireSession`/`requireAdmin`/`isAdminRole` en Auth; `core/services/audit.service` (`recordAudit`, lee ip/user-agent de headers, RLS por usuario); `core/utils` (`toActionError`, `formatDate`).
+- [x] `modules/tenants` — identidad del fraccionamiento (leer + editar nombre).
+- [x] `modules/users` — invitar (Auth admin + perfil vía service-role, con compensación), cambiar rol, activar/desactivar. Reglas: no modificarte a ti mismo, no dejar sin último admin. `/usuarios`.
+- [x] `modules/residents` — CRUD completo con jerarquía de lotes (selects anidados tipados con `.returns<T>()`), alta/edición en diálogo, suspender/reactivar, regla anti-duplicado. Vista para admin (gestiona) y caseta (solo lee). `/residentes`.
+- [x] `modules/announcements` — crear/editar/publicar/despublicar (admin) + lectura con marca de leído (residente, atribuida al `resident_id`). `/comunicados` ramifica por rol.
+- [x] `modules/dashboard` — `getDashboardMetrics` consume las APIs públicas de otros módulos (no sus repos); `src/app/(dashboard)/dashboard` muestra métricas al admin.
+- [x] `modules/profile` — el usuario edita su nombre/teléfono; cambio de contraseña reutiliza `/reset-password`. `/perfil`.
+- [x] `modules/settings` — `tenant_settings` (contacto, color, zona horaria, idioma). `/configuracion` combina `TenantForm` + `SettingsForm`.
+- [x] `modules/notifications` — estructura preparada; `listNotifications` devuelve `[]` (no hay tabla aún, documentado).
+
+### Decisiones / deuda de Fase 4
+
+- **Bug de tipado resuelto (importante):** el `Database` a mano rompía los `insert` (todo resolvía a `never`). Causas encadenadas: `Views: Record<string,never>` (su firma de índice colapsaba `Tables & Views`) y `AuditColumns` como `interface` (un `interface` no es asignable a `Record<string,unknown>`, así el schema no cumplía `GenericSchema`). Fix: `Views: { [_ in never]: never }` + `AuditColumns` como `type`. Documentado en `src/core/supabase/types.ts`.
+- **service-role puntual:** alta de perfiles (users) y upsert de `tenant_settings` usan service-role porque RLS no define INSERT para esas tablas (flujos administrados). El scoping por tenant lo da la sesión y la Action ya verificó admin. Alternativa futura: añadir policies de INSERT.
+- [x] **Paginación en UI:** hecho en Fase 5 (`components/shared/Pagination` por URL `?page=`, en usuarios/residentes/comunicados).
+- [x] **Búsqueda en UI:** hecho en Fase 5 (`components/shared/SearchInput` por URL `?q=`, en usuarios/residentes).
+- [ ] Auditoría de login/logout (heredado de Fase 3) y rate limiting siguen pendientes.
 
 ## Fase 5 — Layout / UI (pendiente)
 
 Patrón confirmado por el usuario: `AppLayout` (en `src/components/layouts/Sidebar.tsx`) es el shell reutilizable real; `AdminLayout` es solo un ejemplo de uso con `NavItem[]` fijos. Se sigue este patrón para las páginas de módulos; se abstrae más solo si un módulo lo requiere.
 
 - [x] Sustituir la sesión falsa (`{ username: "Operador", role: "Admin" }`) en `SidebarContent` por la sesión real de Supabase — hecho en Fase 3 (`AppLayout` recibe `user` por props).
-- [ ] `NavItem[]` dinámico según permisos del usuario/rol, no hardcodeado (hoy `(dashboard)/layout.tsx` tiene un menú fijo con solo "Inicio")
+- [x] `NavItem[]` dinámico según rol — hecho en Fase 4 (`buildNavItems` en `(dashboard)/layout.tsx`: secciones admin solo para admins). Pendiente granularidad por permiso fino si se requiere.
 - [x] Route Groups `(auth)` y `(dashboard)` creados en Fase 3. Pendiente `(public)` si aparece contenido público.
 
 ## Fase 6 — `.ai/` pendiente
