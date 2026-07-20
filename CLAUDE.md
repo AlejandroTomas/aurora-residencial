@@ -576,3 +576,312 @@ Toda decisión técnica debe facilitar la incorporación futura de nuevos módul
 Se debe favorecer la extensibilidad sobre soluciones rápidas.
 
 Cuando existan varias alternativas válidas, elegir aquella que facilite el crecimiento del producto sin introducir complejidad innecesaria.
+
+---
+
+# SaaS Architecture
+
+Este proyecto es una plataforma SaaS Multi-Tenant.
+
+Existe una única aplicación para todos los clientes.
+
+Cada fraccionamiento representa un Tenant independiente.
+
+Toda la información debe estar completamente aislada entre tenants mediante:
+
+- Supabase Auth
+- Server Actions
+- Services
+- Repositories
+- Row Level Security (RLS)
+
+Nunca confiar en el frontend para aislar información.
+
+Toda consulta debe obtener automáticamente el tenant desde la sesión autenticada.
+
+Nunca utilizar tenant_id enviado por el cliente.
+
+---
+
+# Platform Hierarchy
+
+La plataforma tiene dos niveles claramente separados.
+
+## 1. Platform
+
+Administrada únicamente por el propietario del SaaS.
+
+Puede administrar:
+
+- Tenants
+- Suscripciones
+- Planes
+- Facturación (futuro)
+- Configuración global
+- Feature Flags
+- Analytics
+- Soporte
+
+Este nivel nunca administra residentes directamente.
+
+---
+
+## 2. Tenant
+
+Cada Tenant representa un fraccionamiento.
+
+Cada Tenant administra únicamente su propia información.
+
+Ejemplo:
+
+- Residentes
+- Comunicados
+- Eventos
+- Vehículos
+- Documentos
+- Amenidades
+- Visitas
+- Incidencias
+
+Un Tenant jamás puede consultar información de otro Tenant.
+
+---
+
+# Tenant Provisioning
+
+Cuando un nuevo cliente contrata el sistema, la plataforma debe permitir crear automáticamente un nuevo Tenant.
+
+El proceso de alta debe crear:
+
+1. Tenant
+2. Perfil del Administrador Principal
+3. Organización inicial
+4. Configuración básica
+5. Roles por defecto
+6. Permisos iniciales
+
+El sistema debe dejar listo el fraccionamiento para comenzar a utilizarse inmediatamente.
+
+---
+
+# Tenant Onboarding
+
+Cada Tenant debe contar con una pantalla de configuración inicial donde pueda registrar:
+
+- Nombre del fraccionamiento
+- Logotipo
+- Dirección
+- Estado
+- Ciudad
+- País
+- Código Postal
+- Teléfono
+- Correo de contacto
+- Sitio web (opcional)
+- Zona horaria
+- Idioma
+- Moneda
+
+Esta información pertenece al Tenant, no al usuario.
+
+---
+
+# Public Information
+
+Cada Tenant debe generar automáticamente una URL pública única.
+
+Ejemplos:
+
+https://app.midominio.com/aurora-residencial
+
+https://app.midominio.com/los-pinos
+
+o mediante subdominios en el futuro:
+
+https://aurora.midominio.com
+
+La arquitectura debe estar preparada para soportar ambos esquemas sin cambios importantes.
+
+---
+
+# Platform Users
+
+Existen dos tipos de usuarios.
+
+Platform Users
+
+- SUPER_ADMIN
+
+Tenant Users
+
+- ADMIN
+- GUARD
+- STAFF
+- RESIDENT
+
+Los permisos nunca deben mezclarse entre ambos niveles.
+
+---
+
+# Subscription Ready
+
+Toda la arquitectura debe quedar preparada para soportar planes de suscripción.
+
+Ejemplos:
+
+- Básico
+- Profesional
+- Enterprise
+
+Los límites del plan deben validarse desde los Services.
+
+Ejemplos:
+
+- Máximo de residentes
+- Máximo de administradores
+- Máximo de almacenamiento
+- Máximo de comunicados
+- Máximo de amenidades
+
+Aunque el MVP no implemente pagos, la arquitectura debe estar preparada para ello.
+
+---
+
+# Resident Experience
+
+La aplicación está dirigida a dos tipos principales de usuarios dentro de cada Tenant:
+
+- Administradores
+- Residentes
+
+Los residentes también utilizan la plataforma, pero con permisos limitados.
+
+Durante el MVP podrán:
+
+- Registrarse
+- Iniciar sesión
+- Recuperar contraseña
+- Completar su perfil
+- Asociar su cuenta a una etapa, calle, manzana y lote
+- Ver comunicados
+- Marcar comunicados como leídos
+- Editar su información personal
+
+En futuras versiones podrán:
+
+- Reservar amenidades
+- Registrar visitantes
+- Reportar incidencias
+- Participar en votaciones
+- Recibir notificaciones
+- Consultar estados de cuenta
+
+Los residentes nunca podrán administrar información del fraccionamiento.
+
+---
+
+# Resident Registration
+
+El registro de residentes es autoservicio.
+
+El flujo es el siguiente:
+
+1. Crear una cuenta.
+2. Verificar el correo electrónico.
+3. Completar el perfil.
+4. Seleccionar la etapa, calle, manzana y lote donde reside.
+5. Enviar la solicitud de asociación.
+6. Esperar la aprobación del administrador.
+
+Una cuenta nunca debe quedar asociada automáticamente a un lote.
+
+Toda solicitud debe ser revisada y aprobada por un administrador del Tenant.
+
+El sistema debe permitir que un administrador apruebe o rechace la solicitud y deje un comentario interno si es necesario.
+
+---
+
+# Announcements Feed
+
+Los comunicados representan el principal medio de comunicación entre el fraccionamiento y los residentes.
+
+Los administradores son los únicos usuarios autorizados para crear, editar, publicar o eliminar comunicados.
+
+Los residentes únicamente pueden consultar el contenido publicado.
+
+La interfaz del feed debe inspirarse en aplicaciones modernas como Facebook o Instagram únicamente en términos de experiencia de usuario y presentación visual.
+
+Esto significa:
+
+- Publicaciones organizadas en tarjetas.
+- Scroll vertical continuo.
+- Imágenes destacadas.
+- Archivos adjuntos.
+- Fechas visibles.
+- Autor del comunicado.
+- Diseño limpio y fácil de consumir.
+- Excelente experiencia en dispositivos móviles.
+
+No implementar funcionalidades propias de una red social.
+
+Los residentes no pueden:
+
+- Crear publicaciones.
+- Editar publicaciones.
+- Eliminar publicaciones.
+- Comentar.
+- Reaccionar.
+- Compartir contenido.
+
+La arquitectura debe permitir agregar estas funcionalidades en el futuro si el producto lo requiere, pero el MVP no debe implementarlas.
+
+---
+
+# Tenant Structure
+
+Cada Tenant administra su propia estructura física.
+
+Como mínimo debe poder configurar:
+
+- Etapas
+- Calles
+- Manzanas
+- Lotes
+
+Los residentes siempre estarán asociados a un lote.
+
+Toda la información relacionada con un residente debe derivarse de esa asociación.
+
+La estructura debe permitir crecer en el futuro para soportar:
+
+- Casas
+- Departamentos
+- Torres
+- Edificios
+- Condominios
+- Locales comerciales
+
+Sin modificar la arquitectura principal.
+
+---
+
+# Future Ready
+
+Toda nueva funcionalidad debe diseñarse pensando en la evolución del producto como plataforma SaaS.
+
+Las decisiones técnicas deben facilitar la incorporación futura de módulos como:
+
+- Amenidades
+- Reservaciones
+- Control de visitas
+- Vehículos
+- Incidencias
+- Votaciones
+- Encuestas
+- Documentos
+- Estados de cuenta
+- Pagos
+- Notificaciones Push
+- Aplicación móvil
+
+Nunca desarrollar funcionalidades que limiten el crecimiento futuro del sistema.
