@@ -16,6 +16,7 @@ export type LotStatus =
   | "RENTADO"
   | "EN_CONSTRUCCION"
   | "SUSPENDIDO";
+export type SubscriptionPlan = "BASICO" | "PROFESIONAL" | "ENTERPRISE";
 
 // Columnas de auditoría presentes en toda "tabla de negocio" (soft delete incluido).
 // DEBE ser `type` (no `interface`): un `interface` no recibe firma de índice implícita,
@@ -38,12 +39,14 @@ interface TenantsTable {
     name: string;
     slug: string;
     is_active: boolean;
+    plan: SubscriptionPlan;
   } & AuditColumns;
   Insert: {
     id?: string;
     name: string;
     slug: string;
     is_active?: boolean;
+    plan?: SubscriptionPlan;
   } & AuditInsert;
   Update: Partial<TenantsTable["Insert"]>;
   Relationships: [];
@@ -359,6 +362,7 @@ export type Database = {
     Enums: {
       user_role: UserRole;
       lot_status: LotStatus;
+      subscription_plan: SubscriptionPlan;
     };
     CompositeTypes: { [_ in never]: never };
   };

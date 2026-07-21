@@ -3,9 +3,18 @@ import { PermissionDeniedError } from "@/core/errors";
 import type { UserRole } from "@/core/supabase";
 import { getCurrentSession } from "./get-session.service";
 import { SessionError } from "../errors";
+import { AUTH_ROUTES } from "../constants";
 import type { AuthSession } from "../types";
 
 const ADMIN_ROLES: readonly UserRole[] = ["ADMIN", "SUPER_ADMIN"];
+
+/**
+ * Ruta de inicio según el nivel del usuario: el SUPER_ADMIN vive en el área de
+ * plataforma; el resto, en el dashboard de su fraccionamiento. Los niveles no se mezclan.
+ */
+export function homeRouteForRole(role: UserRole): string {
+  return role === "SUPER_ADMIN" ? AUTH_ROUTES.platform : AUTH_ROUTES.afterLogin;
+}
 
 /**
  * Exige sesión válida. Pensado para el inicio de toda Server Action de negocio:

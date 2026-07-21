@@ -10,6 +10,7 @@ export {
   requireSession,
   requireAdmin,
   isAdminRole,
+  homeRouteForRole,
 } from "./services";
 export { AUTH_ROUTES } from "./constants";
 export type { AuthSession } from "./types";

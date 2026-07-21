@@ -35,6 +35,8 @@ export default async function DashboardLayout({
 }) {
   const session = await getCurrentSession();
   if (!session) redirect(AUTH_ROUTES.login);
+  // El SUPER_ADMIN es nivel plataforma: no entra al dashboard de un tenant.
+  if (session.role === "SUPER_ADMIN") redirect(AUTH_ROUTES.platform);
 
   return (
     <AppLayout

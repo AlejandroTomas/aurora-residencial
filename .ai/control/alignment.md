@@ -156,6 +156,28 @@ Todos alineados con `CLAUDE.md` y los `.ai/context/*` (incluye el bloque SaaS: m
 ## Deuda de alineación con CLAUDE.md (bloque SaaS)
 
 - [x] ~~Rol `STAFF`~~: descartado. El usuario aclaró que los usuarios finales son los residentes y quitó `STAFF` de `CLAUDE.md`; el enum `user_role` (`SUPER_ADMIN, ADMIN, GUARD, RESIDENT`) ahora coincide con el doc.
-- [ ] **Nivel Plataforma (SUPER_ADMIN) sin implementar (prioritario):** hoy todo perfil pertenece a un tenant (`profiles.tenant_id` NOT NULL) y solo existe administración a nivel fraccionamiento. Falta el área de plataforma para el dueño del SaaS: gestionar todos los tenants, alta/provisioning de fraccionamientos (tenant + admin inicial + settings + roles), activar/suspender. Decisión pendiente: cómo modelar al SUPER_ADMIN frente a `tenant_id` y RLS (ver `modules/platform` cuando se cree).
+- [x] **Nivel Plataforma (SUPER_ADMIN) implementado** — ver "Fase 7" abajo.
 - [ ] **Campos de Tenant Onboarding faltantes:** `tenant_settings` no cubre dirección, estado, ciudad, país, código postal, sitio web ni **moneda** (CLAUDE.md → Tenant Onboarding). Ampliar tabla + schema + `SettingsForm` cuando se aborde el onboarding completo.
 - [ ] **URL pública del tenant** (Public Information) — nivel plataforma, fuera del MVP actual.
+
+## Fase 7 — Nivel Plataforma (SUPER_ADMIN)
+
+Área `/platform` para el dueño del SaaS, separada del nivel tenant (los niveles no se mezclan).
+Verificado: `pnpm build` (14 rutas, `/platform` y `/` dinámica por rol) y ESLint, limpios.
+
+- [x] **Modelo elegido (A):** `profiles.tenant_id` sigue NOT NULL; el SUPER_ADMIN pertenece a un tenant reservado "Plataforma". No se toca la base de RLS ni cambia `AuthSession.tenantId: string`. Lecturas cross-tenant por policy RLS (`tenants_select_platform`); escrituras por service-role verificando rol.
+- [x] Migración `011_platform.sql`: enum `subscription_plan`, `tenants.plan` (default `BASICO`), policy SELECT del SUPER_ADMIN. `types.ts` actualizado.
+- [x] `modules/platform`: `listTenants`, `provisionTenant` (tenant + settings + admin invitado, con compensación), `setTenantActive`. `ProvisionTenantForm` + `PlatformTenantsTable`. Permiso `isPlatformAdmin`.
+- [x] Routing: grupo `(platform)` con layout SUPER_ADMIN; `homeRouteForRole` (SUPER_ADMIN → `/platform`, resto → `/dashboard`) aplicado en `(auth)`, `(dashboard)` y raíz.
+- [x] `SUBSCRIPTION`/plan **preparado** (opción 3): columna `plan` existe y se muestra; falta gestión de plan y validación de límites por plan en los Services.
+
+### Setup requerido por el usuario (una vez)
+
+- [ ] Aplicar `supabase/migrations/011_platform.sql`.
+- [ ] Ejecutar `supabase/seeds/platform.sql`: crea el tenant "Plataforma" y (descomentando + poniendo tu correo) promueve tu cuenta a `SUPER_ADMIN`. Ojo: un SUPER_ADMIN ya no administra un fraccionamiento; para probar el nivel tenant, provisiona uno nuevo desde `/platform` o usa una cuenta ADMIN aparte.
+- [ ] En Supabase → Auth → Redirect URLs debe seguir el callback (`/auth/callback`) para la invitación del admin.
+
+### Pendiente de Fase 7 (bajo riesgo)
+
+- [ ] Paginación de la lista de tenants (hoy `listAll`).
+- [ ] Gestión de suscripciones/planes y validación de límites (opción 3 completa).

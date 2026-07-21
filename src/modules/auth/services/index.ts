@@ -3,6 +3,7 @@ export {
   requireSession,
   requireAdmin,
   isAdminRole,
+  homeRouteForRole,
 } from "./require-session.service";
 export { loginService } from "./login.service";
 export { logoutService } from "./logout.service";
