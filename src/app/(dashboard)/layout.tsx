@@ -18,6 +18,7 @@ function buildNavItems(role: UserRole): NavItem[] {
 
   if (isAdminRole(role)) {
     items.push(
+      { label: "Estructura", url: "/estructura", icon: "boxes" },
       { label: "Residentes", url: "/residentes", icon: "building" },
       { label: "Solicitudes", url: "/solicitudes", icon: "clipboard" },
       { label: "Usuarios", url: "/usuarios", icon: "users" },

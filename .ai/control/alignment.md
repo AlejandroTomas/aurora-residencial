@@ -208,6 +208,21 @@ Flujo completo de CLAUDE.md (Resident Registration). Verificado: `pnpm build` (1
 
 ### Pendiente / gaps relacionados
 
-- [ ] **Gestión de estructura física (etapas/calles/manzanas/lotes) sin UI:** hoy los lotes solo existen por seed/SQL. Un tenant recién provisionado no tiene lotes, así que el registro de residentes no puede elegir lote hasta que se creen. **Es el siguiente gap importante** para que el flow sea usable de punta a punta en un tenant nuevo.
+- [x] **Gestión de estructura física (etapas/calles/manzanas/lotes)** — implementada en Fase 9 (ya no depende de seed/SQL).
 - [ ] Notificar por correo al residente cuando su solicitud se aprueba/rechaza.
 - [ ] Verificación por correo real en el registro.
+
+## Fase 9 — Estructura física (Etapas → Calles → Manzanas → Lotes)
+
+CRUD jerárquico administrado por el admin, sobre las tablas ya existentes (migración 004; **sin migración nueva**). Verificado: `pnpm build` (19 rutas, 4 de `/estructura`) y ESLint, limpios.
+
+- [x] `modules/structure`: 4 entidades con listar/crear/renombrar (lotes: editar número/área/estado/observaciones)/activar-desactivar. Cada creación valida el padre; toda escritura audita. Regla: nombres no únicos; lote único por número dentro de su manzana (`DuplicateLotError`).
+- [x] Navegación drill-down: `/estructura` → `/estructura/[stageId]` → `.../[streetId]` → `.../[blockId]`, con back-link en cada nivel.
+- [x] Nav admin: nueva sección "Estructura".
+- [x] Esto **cierra el gap** de Fase 8: un fraccionamiento recién provisionado ya puede crear su estructura y, con ella, recibir registros de residentes de punta a punta.
+
+### Decisiones de Fase 9
+
+- Servicios **agrupados por entidad** (4 archivos) en vez de 1 por caso de uso: el CRUD es uniforme y así se lee mejor. Actions comparten `runStructureAction` (sesión + permiso + Zod + revalidate).
+- `StructureLevel`: componente **genérico** para los niveles con nombre (etapa/calle/manzana), recibe las Server Actions por props. Lotes con UI propia (`LotList`/`LotFormDialog`).
+- Selección de lote en el registro sigue siendo un selector plano con etiqueta completa.
