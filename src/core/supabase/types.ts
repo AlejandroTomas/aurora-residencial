@@ -17,6 +17,7 @@ export type LotStatus =
   | "EN_CONSTRUCCION"
   | "SUSPENDIDO";
 export type SubscriptionPlan = "BASICO" | "PROFESIONAL" | "ENTERPRISE";
+export type MembershipRequestStatus = "PENDING" | "APPROVED" | "REJECTED";
 
 // Columnas de auditoría presentes en toda "tabla de negocio" (soft delete incluido).
 // DEBE ser `type` (no `interface`): un `interface` no recibe firma de índice implícita,
@@ -338,6 +339,39 @@ interface AuditLogTable {
   Relationships: [];
 }
 
+interface MembershipRequestsTable {
+  Row: {
+    id: string;
+    tenant_id: string;
+    profile_id: string;
+    lot_id: string;
+    full_name: string;
+    email: string;
+    phone: string | null;
+    status: MembershipRequestStatus;
+    admin_comment: string | null;
+    created_at: string;
+    reviewed_at: string | null;
+    reviewed_by: string | null;
+  };
+  Insert: {
+    id?: string;
+    tenant_id: string;
+    profile_id: string;
+    lot_id: string;
+    full_name: string;
+    email: string;
+    phone?: string | null;
+    status?: MembershipRequestStatus;
+    admin_comment?: string | null;
+    created_at?: string;
+    reviewed_at?: string | null;
+    reviewed_by?: string | null;
+  };
+  Update: Partial<MembershipRequestsTable["Insert"]>;
+  Relationships: [];
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -354,6 +388,7 @@ export type Database = {
       documents: DocumentsTable;
       announcement_documents: AnnouncementDocumentsTable;
       audit_log: AuditLogTable;
+      membership_requests: MembershipRequestsTable;
     };
     // Forma vacía sin firma de índice (igual que `supabase gen types`). NO usar
     // `Record<string, never>`: su índice `[k: string]: never` hace que supabase-js,
@@ -377,6 +412,7 @@ export type Database = {
       user_role: UserRole;
       lot_status: LotStatus;
       subscription_plan: SubscriptionPlan;
+      membership_request_status: MembershipRequestStatus;
     };
     CompositeTypes: { [_ in never]: never };
   };

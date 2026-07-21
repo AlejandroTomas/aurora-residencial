@@ -184,4 +184,30 @@ Verificado: `pnpm build` (14 rutas, `/platform` y `/` dinámica por rol) y ESLin
 ### Pendiente de Fase 7 (bajo riesgo)
 
 - [ ] Paginación de la lista de tenants (hoy `listAll`).
-- [ ] Gestión de suscripciones/planes y validación de límites (opción 3 completa).
+
+## Fase 8 — Registro autoservicio de residentes + aprobación
+
+Flujo completo de CLAUDE.md (Resident Registration). Verificado: `pnpm build` (15 rutas, incl. `/registro/[slug]` y `/solicitudes`) y ESLint, limpios.
+
+- [x] Migración `013_membership_requests.sql`: enum `membership_request_status`, tabla `membership_requests` (con RLS: el residente ve/crea lo suyo, el admin ve todo y actualiza). `types.ts` actualizado.
+- [x] `modules/membership`:
+  - Registro público `/registro/[slug]` (identifica el tenant por slug): crea cuenta + perfil RESIDENT + solicitud PENDIENTE. Público, vía service-role acotado al slug, con compensación. Nunca asocia el lote automáticamente.
+  - Revisión admin `/solicitudes`: `RequestsTable` con Aprobar (→ `admitResident` de residents, crea el residente ligado a la cuenta) y Rechazar con comentario (`RejectRequestDialog`).
+  - `MembershipStatusBanner` en el dashboard del residente (pendiente/rechazada).
+- [x] `residents` amplió con `admitResident` (crea residente ligado a `profile_id`, con límite de plan + auditoría); `buildLotLabel` expuesto para reuso.
+- [x] Nav admin: nueva sección "Solicitudes". Proxy: `/registro` es público.
+
+### Decisiones de Fase 8
+
+- **Sin verificación por correo (por ahora):** la cuenta se crea confirmada (`email_confirm: true`), el residente entra de inmediato. Activar verificación real = cambiar a `signUp` con `emailRedirectTo` al callback (documentado en el README del módulo).
+- **Selección de lote:** un selector único con la etiqueta completa (Etapa · Calle · Mz · Lote), no selects en cascada.
+
+### Setup requerido por el usuario (una vez)
+
+- [ ] Aplicar `supabase/migrations/013_membership_requests.sql`.
+
+### Pendiente / gaps relacionados
+
+- [ ] **Gestión de estructura física (etapas/calles/manzanas/lotes) sin UI:** hoy los lotes solo existen por seed/SQL. Un tenant recién provisionado no tiene lotes, así que el registro de residentes no puede elegir lote hasta que se creen. **Es el siguiente gap importante** para que el flow sea usable de punta a punta en un tenant nuevo.
+- [ ] Notificar por correo al residente cuando su solicitud se aprueba/rechaza.
+- [ ] Verificación por correo real en el registro.

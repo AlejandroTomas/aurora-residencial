@@ -8,6 +8,8 @@ import {
   AUTH_ROUTES,
 } from "@/modules/auth/server";
 import { getDashboardMetrics } from "@/modules/dashboard/server";
+import { getMembershipStatus } from "@/modules/membership/server";
+import { MembershipStatusBanner } from "@/modules/membership";
 
 function StatCard({
   label,
@@ -38,6 +40,8 @@ export default async function DashboardPage() {
   const metrics = isAdminRole(session.role)
     ? await getDashboardMetrics(session)
     : null;
+  const membership =
+    session.role === "RESIDENT" ? await getMembershipStatus(session) : null;
 
   return (
     <PageScaffold
@@ -64,10 +68,13 @@ export default async function DashboardPage() {
           />
         </div>
       ) : (
-        <div className="rounded-xl border border-border bg-card p-6">
-          <p className="text-sm text-muted-foreground">
-            Consulta los comunicados del fraccionamiento desde el menú.
-          </p>
+        <div className="space-y-4">
+          {membership && <MembershipStatusBanner status={membership} />}
+          <div className="rounded-xl border border-border bg-card p-6">
+            <p className="text-sm text-muted-foreground">
+              Consulta los comunicados del fraccionamiento desde el menú.
+            </p>
+          </div>
         </div>
       )}
     </PageScaffold>

@@ -6,4 +6,5 @@ export type {
   UserRole,
   LotStatus,
   SubscriptionPlan,
+  MembershipRequestStatus,
 } from "./types";

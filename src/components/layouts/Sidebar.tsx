@@ -24,6 +24,7 @@ import {
   Megaphone,
   Settings,
   Building2,
+  ClipboardList,
   Shield,
   ShieldAlert,
 } from "lucide-react";
@@ -37,6 +38,7 @@ const icons = {
   megaphone: Megaphone,
   settings: Settings,
   building: Building2,
+  clipboard: ClipboardList,
   shield: Shield,
   shieldAlert: ShieldAlert,
 } as const;

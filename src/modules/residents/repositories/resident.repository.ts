@@ -130,6 +130,35 @@ export const residentRepository = {
     return data.id;
   },
 
+  // Alta de un residente ya ligado a una cuenta (aprobación de una solicitud de registro).
+  async admit(input: {
+    tenantId: string;
+    lotId: string;
+    profileId: string;
+    fullName: string;
+    email: string;
+    phone: string | null;
+    actorId: string;
+  }): Promise<string> {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase
+      .from("residents")
+      .insert({
+        tenant_id: input.tenantId,
+        lot_id: input.lotId,
+        profile_id: input.profileId,
+        full_name: input.fullName,
+        email: input.email || null,
+        phone: input.phone || null,
+        created_by: input.actorId,
+        updated_by: input.actorId,
+      })
+      .select("id")
+      .single();
+    if (error) throw error;
+    return data.id;
+  },
+
   async update(
     tenantId: string,
     id: string,
