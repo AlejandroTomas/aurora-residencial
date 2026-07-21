@@ -101,7 +101,7 @@ No se corrigió para no mezclar un refactor grande de UI compartida con la tarea
 
 - [ ] **Probar el flujo end-to-end** en `pnpm dev` con el admin real: login → dashboard, logout, "olvidé mi contraseña" → correo → callback → nueva contraseña.
 - [ ] En Supabase (Auth → URL Configuration) agregar la URL de callback a los *Redirect URLs* permitidos (ej. `http://localhost:3000/auth/callback`), o el correo de recuperación fallará silenciosamente.
-- [ ] Rate limiting propio para login/recuperación (hoy se apoya en los límites de Supabase Auth) y registro de login/logout en `audit_log` — se integran en Fase 4.
+- [x] Rate limiting propio y auditoría de login/logout — implementados en Fase 10 (abajo).
 
 ## Fase 4 — Módulos del MVP
 
@@ -125,7 +125,7 @@ módulo, DTO+mapper, errores tipados, auditoría en cada escritura y `index.ts` 
 - **service-role puntual:** alta de perfiles (users) y upsert de `tenant_settings` usan service-role porque RLS no define INSERT para esas tablas (flujos administrados). El scoping por tenant lo da la sesión y la Action ya verificó admin. Alternativa futura: añadir policies de INSERT.
 - [x] **Paginación en UI:** hecho en Fase 5 (`components/shared/Pagination` por URL `?page=`, en usuarios/residentes/comunicados).
 - [x] **Búsqueda en UI:** hecho en Fase 5 (`components/shared/SearchInput` por URL `?q=`, en usuarios/residentes).
-- [ ] Auditoría de login/logout (heredado de Fase 3) y rate limiting siguen pendientes.
+- [x] Auditoría de login/logout y rate limiting — implementados en Fase 10 (abajo).
 
 ## Fase 5 — Layout / UI
 
@@ -209,7 +209,7 @@ Flujo completo de CLAUDE.md (Resident Registration). Verificado: `pnpm build` (1
 ### Pendiente / gaps relacionados
 
 - [x] **Gestión de estructura física (etapas/calles/manzanas/lotes)** — implementada en Fase 9 (ya no depende de seed/SQL).
-- [ ] Notificar por correo al residente cuando su solicitud se aprueba/rechaza.
+- [x] **Notificación por correo** al residente al aprobar/rechazar su solicitud — implementado con `core/email` (Resend). Tolerante: sin `RESEND_API_KEY` solo registra en log (la app no depende del correo). Variables opcionales `RESEND_API_KEY`/`EMAIL_FROM` en `core/env/server` y `.env.example`. Infra reusable para futuros correos (bienvenida, etc.).
 - [ ] Verificación por correo real en el registro.
 
 ## Fase 9 — Estructura física (Etapas → Calles → Manzanas → Lotes)
@@ -226,3 +226,26 @@ CRUD jerárquico administrado por el admin, sobre las tablas ya existentes (migr
 - Servicios **agrupados por entidad** (4 archivos) en vez de 1 por caso de uso: el CRUD es uniforme y así se lee mejor. Actions comparten `runStructureAction` (sesión + permiso + Zod + revalidate).
 - `StructureLevel`: componente **genérico** para los niveles con nombre (etapa/calle/manzana), recibe las Server Actions por props. Lotes con UI propia (`LotList`/`LotFormDialog`).
 - Selección de lote en el registro sigue siendo un selector plano con etiqueta completa.
+
+## Fase 10 — Correo + Seguridad
+
+Verificado: `pnpm build` y ESLint, limpios.
+
+- [x] **Correo (Resend):** `core/email/sendEmail`, tolerante (sin `RESEND_API_KEY` solo loguea). Notifica al residente al aprobar/rechazar su solicitud. Variables opcionales `RESEND_API_KEY`/`EMAIL_FROM`.
+- [x] **Auditoría de login/logout:** `recordAudit` gana la opción `viaServiceRole` (la sesión está en transición al iniciar/cerrar, así que RLS no aplicaría); `loginService`/`logoutService` registran `auth.login`/`auth.logout`.
+- [x] **Rate limiting respaldado en BD** (`core/rate-limit/checkRateLimit`, ventana deslizante, fail-open): migración `014_rate_limits.sql` (tabla `rate_limit_hits`, RLS sin policies → solo service-role). Aplicado a registro público (`register:{ip}`) y recuperación de contraseña (`forgot:{ip}`), 5/hora. Login/recuperación además tienen los límites propios de Supabase Auth.
+
+### Setup requerido por el usuario (una vez)
+
+- [ ] Aplicar `supabase/migrations/014_rate_limits.sql`.
+- [ ] (Opcional) Configurar `RESEND_API_KEY`/`EMAIL_FROM` para activar el envío real de correos.
+
+### Pendiente
+
+- [x] Paginación de la lista de tenants en `/platform` — hecho (`Paginated` + `Pagination` por URL `?page=`).
+- [ ] Verificación por correo real en el registro (hoy la cuenta se crea confirmada). Bajo riesgo.
+
+## Pendiente FINAL (tras Storage) — pedido explícito del usuario
+
+- [ ] **Módulo de Storage** (bucket privado + Signed URLs): logo del tenant y adjuntos en comunicados; habilita el límite de almacenamiento por plan.
+- [ ] **MD de pruebas** al final de todo: documento con todos los casos de uso, la estructura del proyecto y los pasos para crear `SUPER_ADMIN`, `ADMIN` y `RESIDENT`. Incluir una sección de **Correo**: ya está implementado (notificaciones de aprobación/rechazo vía Resend) pero requiere **acciones de configuración** (`RESEND_API_KEY`/`EMAIL_FROM` + dominio verificado en producción) para enviar de verdad; sin config solo se registra en log.

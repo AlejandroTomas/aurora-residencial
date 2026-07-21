@@ -372,6 +372,21 @@ interface MembershipRequestsTable {
   Relationships: [];
 }
 
+interface RateLimitHitsTable {
+  Row: {
+    id: number;
+    key: string;
+    created_at: string;
+  };
+  Insert: {
+    id?: number;
+    key: string;
+    created_at?: string;
+  };
+  Update: Partial<RateLimitHitsTable["Insert"]>;
+  Relationships: [];
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -389,6 +404,7 @@ export type Database = {
       announcement_documents: AnnouncementDocumentsTable;
       audit_log: AuditLogTable;
       membership_requests: MembershipRequestsTable;
+      rate_limit_hits: RateLimitHitsTable;
     };
     // Forma vacía sin firma de índice (igual que `supabase gen types`). NO usar
     // `Record<string, never>`: su índice `[k: string]: never` hace que supabase-js,

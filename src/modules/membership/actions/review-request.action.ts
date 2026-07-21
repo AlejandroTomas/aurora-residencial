@@ -1,5 +1,6 @@
 "use server";
 
+import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { requireSession } from "@/modules/auth/server";
 import { PermissionDeniedError } from "@/core/errors";
@@ -23,7 +24,12 @@ export async function approveRequestAction(
       return { success: false, error: "Solicitud inválida." };
     }
 
-    await approveRequest(session, parsed.data);
+    const origin = (await headers()).get("origin");
+    await approveRequest(
+      session,
+      parsed.data,
+      origin ? `${origin}/login` : undefined,
+    );
     revalidatePath(REQUESTS_PATH);
     return { success: true, data: null };
   } catch (error) {

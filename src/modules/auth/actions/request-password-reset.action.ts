@@ -1,6 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
+import { checkRateLimit } from "@/core/rate-limit";
 import type { ActionResult } from "@/core/types";
 import { requestPasswordResetSchema } from "../schemas";
 import { requestPasswordResetService } from "../services";
@@ -19,7 +20,21 @@ export async function requestPasswordResetAction(
     return { success: false, error: "Ingresa un correo válido." };
   }
 
-  const origin = (await headers()).get("origin");
+  const headerList = await headers();
+  const ip =
+    headerList.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const allowed = await checkRateLimit(`forgot:${ip}`, {
+    limit: 5,
+    windowSeconds: 3600,
+  });
+  if (!allowed) {
+    return {
+      success: false,
+      error: "Demasiados intentos. Espera un momento e intenta de nuevo.",
+    };
+  }
+
+  const origin = headerList.get("origin");
   if (!origin) {
     return { success: false, error: "No se pudo procesar la solicitud." };
   }

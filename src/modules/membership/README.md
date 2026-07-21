@@ -42,4 +42,5 @@ primero se crea una solicitud y un admin la aprueba (creando el residente) o la 
   (service-role `createUser`) por el flujo `signUp` con `emailRedirectTo` al callback.
 - **Selección de lote:** un único selector con la etiqueta completa (Etapa · Calle · Mz ·
   Lote), en vez de selects en cascada. Mismo resultado.
-- [ ] Notificar al residente por correo cuando su solicitud es aprobada/rechazada.
+- [x] Notificación por correo al residente al aprobar/rechazar (vía `core/email` + Resend;
+  tolerante si no hay `RESEND_API_KEY`).

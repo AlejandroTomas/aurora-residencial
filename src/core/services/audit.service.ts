@@ -1,6 +1,9 @@
 import "server-only";
 import { headers } from "next/headers";
-import { createSupabaseServerClient } from "@/core/supabase";
+import {
+  createSupabaseServerClient,
+  createSupabaseServiceRoleClient,
+} from "@/core/supabase";
 import { logger } from "@/core/logger";
 
 interface AuditInput {
@@ -11,12 +14,17 @@ interface AuditInput {
   recordId?: string | null;
   oldData?: Record<string, unknown> | null;
   newData?: Record<string, unknown> | null;
+  // Usar service-role cuando la sesión del usuario aún no está estable en las cookies
+  // (ej. justo al iniciar/cerrar sesión), donde `auth.uid()` no reflejaría al usuario y
+  // la policy de RLS del INSERT fallaría.
+  viaServiceRole?: boolean;
 }
 
 /**
  * Registra un evento en `audit_log` (security.md: Auditoría). Se llama desde los Services
  * de escritura, no desde un trigger, porque `ip`/`user_agent` solo existen en el contexto
- * de la request. Corre con el cliente del usuario: la policy de RLS exige `user_id = auth.uid()`.
+ * de la request. Por defecto corre con el cliente del usuario (la policy de RLS exige
+ * `user_id = auth.uid()`); con `viaServiceRole` bypasa RLS para eventos de sesión.
  *
  * Un fallo de auditoría se registra pero NO interrumpe la operación de negocio ya realizada:
  * se prioriza no dejar al usuario a medias, y el error queda observable en logs.
@@ -28,7 +36,9 @@ export async function recordAudit(input: AuditInput): Promise<void> {
       headerList.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
     const userAgent = headerList.get("user-agent");
 
-    const supabase = await createSupabaseServerClient();
+    const supabase = input.viaServiceRole
+      ? createSupabaseServiceRoleClient()
+      : await createSupabaseServerClient();
     const { error } = await supabase.from("audit_log").insert({
       tenant_id: input.tenantId,
       user_id: input.userId,

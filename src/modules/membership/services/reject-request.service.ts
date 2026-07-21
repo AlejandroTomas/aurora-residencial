@@ -1,8 +1,10 @@
 import "server-only";
 import { recordAudit } from "@/core/services";
+import { sendEmail } from "@/core/email";
 import type { AuthSession } from "@/modules/auth/server";
 import { membershipRequestRepository } from "../repositories";
 import { RequestAlreadyReviewedError, RequestNotFoundError } from "../errors";
+import { renderRejectionEmail } from "../utils";
 import type { RejectRequestInput } from "../schemas";
 
 /** Caso de uso: rechazar una solicitud, opcionalmente con un comentario para el residente. */
@@ -32,4 +34,7 @@ export async function rejectRequest(
     tableName: "membership_requests",
     recordId: request.id,
   });
+
+  const email = renderRejectionEmail(request.full_name, input.comment || null);
+  await sendEmail({ to: request.email, subject: email.subject, html: email.html });
 }

@@ -1,5 +1,6 @@
 import "server-only";
 import { logger } from "@/core/logger";
+import { recordAudit } from "@/core/services";
 import { authRepository, profileRepository } from "../repositories";
 import { toAuthSession } from "../mappers";
 import { InvalidCredentialsError, SessionError } from "../errors";
@@ -35,6 +36,14 @@ export async function loginService(input: LoginInput): Promise<AuthSession> {
   logger.info("Login exitoso", {
     userId: profile.id,
     tenantId: profile.tenant_id,
+  });
+  await recordAudit({
+    tenantId: profile.tenant_id,
+    userId: profile.id,
+    action: "auth.login",
+    tableName: "profiles",
+    recordId: profile.id,
+    viaServiceRole: true,
   });
   return toAuthSession(profile);
 }
