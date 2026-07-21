@@ -7,6 +7,7 @@ import { Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDateTime } from "@/core/utils";
+import { AnnouncementAttachmentsDialog } from "./AnnouncementAttachmentsDialog";
 import { markAnnouncementReadAction } from "../actions";
 import type { AnnouncementDto } from "../types";
 
@@ -81,6 +82,12 @@ export function AnnouncementsReaderList({
             <p className="mt-3 whitespace-pre-line text-sm text-foreground/80">
               {announcement.body}
             </p>
+            <div className="mt-3">
+              <AnnouncementAttachmentsDialog
+                announcementId={announcement.id}
+                canManage={false}
+              />
+            </div>
           </article>
         );
       })}

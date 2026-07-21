@@ -12,3 +12,9 @@ export class NotAResidentError extends ValidationError {
     super("Tu cuenta no está vinculada a un residente.");
   }
 }
+
+export class DocumentNotFoundError extends NotFoundError {
+  constructor() {
+    super("No se encontró el archivo adjunto.");
+  }
+}

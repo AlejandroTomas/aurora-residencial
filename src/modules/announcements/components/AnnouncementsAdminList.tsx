@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDateTime } from "@/core/utils";
 import { AnnouncementFormDialog } from "./AnnouncementFormDialog";
+import { AnnouncementAttachmentsDialog } from "./AnnouncementAttachmentsDialog";
 import { setAnnouncementPublishedAction } from "../actions";
 import type { AnnouncementDto } from "../types";
 
@@ -74,7 +75,11 @@ export function AnnouncementsAdminList({
                   </p>
                 )}
               </div>
-              <div className="flex shrink-0 gap-2">
+              <div className="flex shrink-0 flex-wrap justify-end gap-2">
+                <AnnouncementAttachmentsDialog
+                  announcementId={announcement.id}
+                  canManage
+                />
                 <AnnouncementFormDialog
                   announcement={announcement}
                   trigger={

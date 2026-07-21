@@ -11,3 +11,12 @@ export interface AnnouncementDto {
   createdAt: string;
   isRead?: boolean;
 }
+
+/** Adjunto de un comunicado, con Signed URL de descarga (vida corta). */
+export interface AttachmentDto {
+  id: string;
+  filename: string;
+  mimeType: string;
+  sizeBytes: number;
+  url: string;
+}

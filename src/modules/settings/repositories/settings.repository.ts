@@ -52,6 +52,32 @@ export const settingsRepository = {
     return data;
   },
 
+  async findLogoPath(tenantId: string): Promise<string | null> {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase
+      .from("tenant_settings")
+      .select("logo_url")
+      .eq("tenant_id", tenantId)
+      .maybeSingle();
+    if (error) throw error;
+    return data?.logo_url ?? null;
+  },
+
+  async setLogoPath(
+    tenantId: string,
+    path: string,
+    actorId: string,
+  ): Promise<void> {
+    const supabase = createSupabaseServiceRoleClient();
+    const { error } = await supabase
+      .from("tenant_settings")
+      .upsert(
+        { tenant_id: tenantId, logo_url: path, updated_by: actorId },
+        { onConflict: "tenant_id" },
+      );
+    if (error) throw error;
+  },
+
   /**
    * Upsert con service-role: la fila de configuración puede no existir todavía y RLS no
    * define INSERT para `tenant_settings` (solo SELECT/UPDATE). El scoping por tenant lo

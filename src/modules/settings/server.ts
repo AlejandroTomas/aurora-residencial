@@ -1,4 +1,4 @@
 import "server-only";
 
-export { getSettings } from "./services";
+export { getSettings, getLogoUrl } from "./services";
 export type { SettingsDto } from "./types";

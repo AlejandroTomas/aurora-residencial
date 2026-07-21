@@ -4,6 +4,7 @@ import {
   createSupabaseServiceRoleClient,
 } from "@/core/supabase";
 import type { Database, SubscriptionPlan } from "@/core/supabase";
+import { toRange, type PaginationParams } from "@/core/types";
 
 type TenantRow = Database["public"]["Tables"]["tenants"]["Row"];
 
@@ -16,15 +17,19 @@ export type PlatformTenantRecord = Pick<
 export const platformTenantRepository = {
   // Lecturas con el cliente del usuario: la policy `tenants_select_platform` permite al
   // SUPER_ADMIN ver todos los tenants (RLS como fuente de verdad).
-  async listAll(): Promise<PlatformTenantRecord[]> {
+  async list(
+    pagination: PaginationParams,
+  ): Promise<{ rows: PlatformTenantRecord[]; total: number }> {
     const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase
+    const { from, to } = toRange(pagination);
+    const { data, error, count } = await supabase
       .from("tenants")
-      .select(COLUMNS)
+      .select(COLUMNS, { count: "exact" })
       .is("deleted_at", null)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .range(from, to);
     if (error) throw error;
-    return data ?? [];
+    return { rows: data ?? [], total: count ?? 0 };
   },
 
   async findById(tenantId: string): Promise<PlatformTenantRecord | null> {

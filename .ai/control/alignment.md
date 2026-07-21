@@ -245,7 +245,25 @@ Verificado: `pnpm build` y ESLint, limpios.
 - [x] Paginación de la lista de tenants en `/platform` — hecho (`Paginated` + `Pagination` por URL `?page=`).
 - [ ] Verificación por correo real en el registro (hoy la cuenta se crea confirmada). Bajo riesgo.
 
-## Pendiente FINAL (tras Storage) — pedido explícito del usuario
+## Fase 11 — Storage (bucket privado + Signed URLs)
 
-- [ ] **Módulo de Storage** (bucket privado + Signed URLs): logo del tenant y adjuntos en comunicados; habilita el límite de almacenamiento por plan.
-- [ ] **MD de pruebas** al final de todo: documento con todos los casos de uso, la estructura del proyecto y los pasos para crear `SUPER_ADMIN`, `ADMIN` y `RESIDENT`. Incluir una sección de **Correo**: ya está implementado (notificaciones de aprobación/rechazo vía Resend) pero requiere **acciones de configuración** (`RESEND_API_KEY`/`EMAIL_FROM` + dominio verificado en producción) para enviar de verdad; sin config solo se registra en log.
+Sobre el bucket `tenant-files` y las tablas `documents`/`announcement_documents` ya existentes (migraciones 007/010; **sin migración nueva**). Verificado: `pnpm build` y ESLint, limpios.
+
+- [x] `core/storage`: validación (tipo MIME/tamaño, security.md), `storageRepository` (upload / Signed URL / remove) server-only; `validateUploadFile`/constantes cliente-seguras. Nombre generado (UUID+ext), nunca el original. `next.config` sube `serverActions.bodySizeLimit` a 6mb.
+- [x] **Adjuntos en comunicados** (announcements): subir/listar/descargar/quitar vía `AnnouncementAttachmentsDialog` (admin gestiona; residente descarga). Sirve con Signed URLs de vida corta. Documentos con `documents` + `announcement_documents`, soft delete + borrado del archivo al quitar.
+- [x] **Logotipo del tenant** (settings): `LogoUploader` en `/configuracion` (solo imágenes), guarda ruta en `tenant_settings.logo_url`, muestra preview con Signed URL, borra el logo anterior.
+- [x] `core/utils/formatFileSize`.
+
+### Pendiente de Fase 11
+
+- [ ] Validación de contenido real del archivo (magic bytes), hoy se confía en el MIME reportado. Bajo riesgo (bucket privado + tenant scoping).
+- [ ] Límite de almacenamiento por plan (el patrón `PLAN_LIMITS` está listo; falta sumar tamaño por tenant).
+- [ ] Mostrar el logo en el sidebar (hoy solo en Configuración).
+
+## Pedido FINAL — completado
+
+- [x] **MD de pruebas** creado en `TESTING.md` (raíz): estructura del proyecto, setup
+  (env/migraciones/seeds), pasos para crear `SUPER_ADMIN`/`ADMIN`/`GUARD`/`RESIDENT`,
+  checklist de todos los casos de uso por módulo, verificación técnica y limitaciones.
+  Incluye la sección de **Correo** (implementado; requiere configurar `RESEND_API_KEY` para
+  enviar de verdad).
