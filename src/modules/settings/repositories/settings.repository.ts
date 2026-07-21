@@ -8,15 +8,33 @@ import type { Database } from "@/core/supabase";
 type SettingsRow = Database["public"]["Tables"]["tenant_settings"]["Row"];
 
 const COLUMNS =
-  "contact_phone, contact_email, primary_color, timezone, language";
+  "contact_phone, contact_email, website, address, city, state, postal_code, country, currency, primary_color, timezone, language";
 export type SettingsRecord = Pick<
   SettingsRow,
-  "contact_phone" | "contact_email" | "primary_color" | "timezone" | "language"
+  | "contact_phone"
+  | "contact_email"
+  | "website"
+  | "address"
+  | "city"
+  | "state"
+  | "postal_code"
+  | "country"
+  | "currency"
+  | "primary_color"
+  | "timezone"
+  | "language"
 >;
 
 interface SettingsPatch {
   contact_phone: string | null;
   contact_email: string | null;
+  website: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  postal_code: string | null;
+  country: string | null;
+  currency: string;
   primary_color: string | null;
   timezone: string;
   language: string;

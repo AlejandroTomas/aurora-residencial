@@ -1,14 +1,14 @@
 import { z } from "zod";
 
 export const SUPPORTED_LANGUAGES = ["es", "en"] as const;
+export const SUPPORTED_CURRENCIES = ["MXN", "USD", "EUR"] as const;
+
+// Texto opcional: acepta el string vacío del formulario (se convierte a NULL al persistir).
+const optionalText = (max: number) =>
+  z.string().trim().max(max, "Texto demasiado largo.").optional().or(z.literal(""));
 
 export const updateSettingsSchema = z.object({
-  contactPhone: z
-    .string()
-    .trim()
-    .max(20, "El teléfono es demasiado largo.")
-    .optional()
-    .or(z.literal("")),
+  contactPhone: optionalText(20),
   contactEmail: z
     .string()
     .trim()
@@ -16,6 +16,18 @@ export const updateSettingsSchema = z.object({
     .email("Ingresa un correo válido.")
     .optional()
     .or(z.literal("")),
+  website: z
+    .string()
+    .trim()
+    .url("Ingresa una URL válida (https://…).")
+    .optional()
+    .or(z.literal("")),
+  address: optionalText(160),
+  city: optionalText(80),
+  state: optionalText(80),
+  postalCode: optionalText(12),
+  country: optionalText(80),
+  currency: z.enum(SUPPORTED_CURRENCIES),
   primaryColor: z
     .string()
     .trim()

@@ -15,6 +15,13 @@ export async function updateSettings(
     {
       contact_phone: input.contactPhone || null,
       contact_email: input.contactEmail || null,
+      website: input.website || null,
+      address: input.address || null,
+      city: input.city || null,
+      state: input.state || null,
+      postal_code: input.postalCode || null,
+      country: input.country || null,
+      currency: input.currency,
       primary_color: input.primaryColor || null,
       timezone: input.timezone,
       language: input.language,

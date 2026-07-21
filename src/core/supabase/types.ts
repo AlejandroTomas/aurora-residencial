@@ -58,6 +58,13 @@ interface TenantSettingsTable {
     logo_url: string | null;
     contact_phone: string | null;
     contact_email: string | null;
+    address: string | null;
+    city: string | null;
+    state: string | null;
+    postal_code: string | null;
+    country: string | null;
+    website: string | null;
+    currency: string;
     primary_color: string | null;
     timezone: string;
     language: string;
@@ -69,6 +76,13 @@ interface TenantSettingsTable {
     logo_url?: string | null;
     contact_phone?: string | null;
     contact_email?: string | null;
+    address?: string | null;
+    city?: string | null;
+    state?: string | null;
+    postal_code?: string | null;
+    country?: string | null;
+    website?: string | null;
+    currency?: string;
     primary_color?: string | null;
     timezone?: string;
     language?: string;

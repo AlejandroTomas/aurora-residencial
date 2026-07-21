@@ -157,7 +157,7 @@ Todos alineados con `CLAUDE.md` y los `.ai/context/*` (incluye el bloque SaaS: m
 
 - [x] ~~Rol `STAFF`~~: descartado. El usuario aclaró que los usuarios finales son los residentes y quitó `STAFF` de `CLAUDE.md`; el enum `user_role` (`SUPER_ADMIN, ADMIN, GUARD, RESIDENT`) ahora coincide con el doc.
 - [x] **Nivel Plataforma (SUPER_ADMIN) implementado** — ver "Fase 7" abajo.
-- [ ] **Campos de Tenant Onboarding faltantes:** `tenant_settings` no cubre dirección, estado, ciudad, país, código postal, sitio web ni **moneda** (CLAUDE.md → Tenant Onboarding). Ampliar tabla + schema + `SettingsForm` cuando se aborde el onboarding completo.
+- [x] **Campos de Tenant Onboarding implementados:** migración `012_tenant_onboarding.sql` añade a `tenant_settings` dirección, ciudad, estado, código postal, país, sitio web y **moneda** (default `MXN`). `SettingsDto`/schema/repo/mapper y `SettingsForm` (reorganizado en secciones Contacto / Dirección / Preferencias, con selects de moneda e idioma) actualizados. Verificado build + ESLint. **Requiere aplicar la migración 012** (ver setup abajo). Falta solo la carga del logotipo (necesita módulo de Storage).
 - [ ] **URL pública del tenant** (Public Information) — nivel plataforma, fuera del MVP actual.
 
 ## Fase 7 — Nivel Plataforma (SUPER_ADMIN)
@@ -172,8 +172,8 @@ Verificado: `pnpm build` (14 rutas, `/platform` y `/` dinámica por rol) y ESLin
 - [x] **Suscripciones / planes (Subscription Ready) implementado:**
   - Cambio de plan por fraccionamiento desde `/platform` (select en la tabla → `updateTenantPlan`, service-role, auditado).
   - Límites por plan en `core/config/plan-limits.ts` (`PLAN_LIMITS`, ajustables en un solo lugar; `null` = ilimitado). Defaults: Básico 100 residentes / 3 usuarios / 50 comunicados; Profesional 500/10/500; Enterprise ilimitado.
-  - Validación en los Services (CLAUDE.md): `createResident` (maxResidents) e `inviteUser` (maxUsers) leen el plan del tenant (`getTenantPlan`) y lanzan `PlanLimitExceededError` (nuevo `ErrorCode PLAN_LIMIT_EXCEEDED`) si se excede.
-  - [ ] Pendiente extender el check a comunicados (maxAnnouncements) y a almacenamiento cuando exista; el patrón ya está listo (mismo `PLAN_LIMITS` + `isWithinLimit`).
+  - Validación en los Services (CLAUDE.md): `createResident` (maxResidents), `inviteUser` (maxUsers) y `createAnnouncement` (maxAnnouncements) leen el plan del tenant (`getTenantPlan`) y lanzan `PlanLimitExceededError` (nuevo `ErrorCode PLAN_LIMIT_EXCEEDED`) si se excede. Los tres límites del MVP quedan activos.
+  - [ ] Pendiente el límite de almacenamiento cuando exista el módulo de documentos; el patrón ya está listo (mismo `PLAN_LIMITS` + `isWithinLimit`).
 
 ### Setup requerido por el usuario (una vez)
 
