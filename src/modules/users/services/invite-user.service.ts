@@ -1,8 +1,10 @@
 import "server-only";
 import { recordAudit } from "@/core/services";
-import { ValidationError } from "@/core/errors";
+import { ValidationError, PlanLimitExceededError } from "@/core/errors";
+import { PLAN_LIMITS, isWithinLimit } from "@/core/config";
 import { logger } from "@/core/logger";
 import type { AuthSession } from "@/modules/auth/server";
+import { getTenantPlan } from "@/modules/tenants/server";
 import { authAdminRepository, userRepository } from "../repositories";
 import { toUserDto } from "../mappers";
 import { UserAlreadyExistsError } from "../errors";
@@ -32,6 +34,16 @@ export async function inviteUser(
   input: InviteUserInput,
   redirectTo: string,
 ): Promise<UserDto> {
+  const limit = PLAN_LIMITS[await getTenantPlan(session)].maxUsers;
+  if (limit !== null) {
+    const current = await userRepository.countActive(session.tenantId);
+    if (!isWithinLimit(current, limit)) {
+      throw new PlanLimitExceededError(
+        `Tu plan permite hasta ${limit} usuarios. Actualiza el plan para invitar más.`,
+      );
+    }
+  }
+
   const { data, error } = await authAdminRepository.inviteByEmail(
     input.email,
     redirectTo,

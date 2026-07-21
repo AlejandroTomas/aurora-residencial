@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SUBSCRIPTION_PLANS } from "../constants";
 
 /**
  * Alta (provisioning) de un fraccionamiento: sus datos mínimos + el administrador inicial
@@ -28,5 +29,12 @@ export const setTenantActiveSchema = z.object({
   isActive: z.boolean(),
 });
 
+export const updateTenantPlanSchema = z.object({
+  //   tenantId: z.string().uuid("Fraccionamiento inválido."),
+  tenantId: z.string("Fraccionamiento inválido."),
+  plan: z.enum(SUBSCRIPTION_PLANS),
+});
+
 export type ProvisionTenantInput = z.infer<typeof provisionTenantSchema>;
 export type SetTenantActiveInput = z.infer<typeof setTenantActiveSchema>;
+export type UpdateTenantPlanInput = z.infer<typeof updateTenantPlanSchema>;

@@ -54,6 +54,17 @@ export const userRepository = {
     return data;
   },
 
+  async countActive(tenantId: string): Promise<number> {
+    const supabase = await createSupabaseServerClient();
+    const { count, error } = await supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("tenant_id", tenantId)
+      .eq("is_active", true);
+    if (error) throw error;
+    return count ?? 0;
+  },
+
   async countActiveAdmins(tenantId: string): Promise<number> {
     const supabase = await createSupabaseServerClient();
     const { count, error } = await supabase

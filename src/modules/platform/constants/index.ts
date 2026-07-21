@@ -1,1 +1,1 @@
-export { PLAN_LABELS } from "./plans";
+export { SUBSCRIPTION_PLANS, PLAN_LABELS } from "./plans";

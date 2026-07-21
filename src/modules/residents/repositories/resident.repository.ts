@@ -72,6 +72,18 @@ export const residentRepository = {
     return data?.[0] ?? null;
   },
 
+  async countActive(tenantId: string): Promise<number> {
+    const supabase = await createSupabaseServerClient();
+    const { count, error } = await supabase
+      .from("residents")
+      .select("id", { count: "exact", head: true })
+      .eq("tenant_id", tenantId)
+      .eq("is_active", true)
+      .is("deleted_at", null);
+    if (error) throw error;
+    return count ?? 0;
+  },
+
   async existsActiveDuplicate(
     tenantId: string,
     lotId: string,

@@ -3,7 +3,7 @@ import {
   createSupabaseServerClient,
   createSupabaseServiceRoleClient,
 } from "@/core/supabase";
-import type { Database } from "@/core/supabase";
+import type { Database, SubscriptionPlan } from "@/core/supabase";
 
 type TenantRow = Database["public"]["Tables"]["tenants"]["Row"];
 
@@ -60,6 +60,19 @@ export const platformTenantRepository = {
     const { error } = await supabase
       .from("tenants")
       .update({ is_active: isActive, updated_by: actorId })
+      .eq("id", tenantId);
+    if (error) throw error;
+  },
+
+  async updatePlan(
+    tenantId: string,
+    plan: SubscriptionPlan,
+    actorId: string,
+  ): Promise<void> {
+    const supabase = createSupabaseServiceRoleClient();
+    const { error } = await supabase
+      .from("tenants")
+      .update({ plan, updated_by: actorId })
       .eq("id", tenantId);
     if (error) throw error;
   },

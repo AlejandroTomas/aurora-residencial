@@ -4,7 +4,8 @@ export type ErrorCode =
   | "TENANT_MISMATCH"
   | "NOT_FOUND"
   | "CONFLICT"
-  | "STORAGE_ERROR";
+  | "STORAGE_ERROR"
+  | "PLAN_LIMIT_EXCEEDED";
 
 export abstract class AppError extends Error {
   abstract readonly code: ErrorCode;

@@ -5,7 +5,8 @@
 export {
   provisionTenantAction,
   setTenantActiveAction,
+  updateTenantPlanAction,
 } from "./actions";
 export { ProvisionTenantForm, PlatformTenantsTable } from "./components";
-export { PLAN_LABELS } from "./constants";
+export { PLAN_LABELS, SUBSCRIPTION_PLANS } from "./constants";
 export type { PlatformTenantDto } from "./types";

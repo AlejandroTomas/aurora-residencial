@@ -1,6 +1,6 @@
 import "server-only";
 import { createSupabaseServerClient } from "@/core/supabase";
-import type { Database } from "@/core/supabase";
+import type { Database, SubscriptionPlan } from "@/core/supabase";
 
 type TenantRow = Database["public"]["Tables"]["tenants"]["Row"];
 type TenantUpdate = Database["public"]["Tables"]["tenants"]["Update"];
@@ -23,6 +23,18 @@ export const tenantRepository = {
       .maybeSingle();
     if (error) throw error;
     return data;
+  },
+
+  async findPlan(id: string): Promise<SubscriptionPlan | null> {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase
+      .from("tenants")
+      .select("plan")
+      .eq("id", id)
+      .is("deleted_at", null)
+      .maybeSingle();
+    if (error) throw error;
+    return data?.plan ?? null;
   },
 
   async update(id: string, patch: TenantUpdate): Promise<TenantRecord> {

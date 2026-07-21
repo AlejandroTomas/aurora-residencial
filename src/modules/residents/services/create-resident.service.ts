@@ -1,6 +1,9 @@
 import "server-only";
 import { recordAudit } from "@/core/services";
+import { PlanLimitExceededError } from "@/core/errors";
+import { PLAN_LIMITS, isWithinLimit } from "@/core/config";
 import type { AuthSession } from "@/modules/auth/server";
+import { getTenantPlan } from "@/modules/tenants/server";
 import { residentRepository, lotRepository } from "../repositories";
 import { toResidentDto } from "../mappers";
 import {
@@ -24,6 +27,16 @@ export async function createResident(
     input.lotId,
   );
   if (!lotExists) throw new LotNotFoundError();
+
+  const limit = PLAN_LIMITS[await getTenantPlan(session)].maxResidents;
+  if (limit !== null) {
+    const current = await residentRepository.countActive(session.tenantId);
+    if (!isWithinLimit(current, limit)) {
+      throw new PlanLimitExceededError(
+        `Tu plan permite hasta ${limit} residentes. Actualiza el plan para registrar más.`,
+      );
+    }
+  }
 
   const duplicated = await residentRepository.existsActiveDuplicate(
     session.tenantId,

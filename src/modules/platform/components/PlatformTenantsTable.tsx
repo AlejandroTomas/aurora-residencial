@@ -14,9 +14,12 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/core/utils";
-import { setTenantActiveAction } from "../actions";
-import { PLAN_LABELS } from "../constants";
+import { setTenantActiveAction, updateTenantPlanAction } from "../actions";
+import { PLAN_LABELS, SUBSCRIPTION_PLANS } from "../constants";
 import type { PlatformTenantDto } from "../types";
+
+const SELECT_CLASS =
+  "h-8 rounded-md border border-input bg-transparent px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:opacity-50 dark:bg-input/30";
 
 export function PlatformTenantsTable({
   tenants,
@@ -42,6 +45,20 @@ export function PlatformTenantsTable({
             ? "Fraccionamiento suspendido."
             : "Fraccionamiento activado.",
         );
+        router.refresh();
+      }
+      setPendingId(null);
+    });
+  };
+
+  const changePlan = (tenantId: string, plan: string) => {
+    setPendingId(tenantId);
+    startTransition(async () => {
+      const result = await updateTenantPlanAction({ tenantId, plan });
+      if (!result.success) {
+        toast.error(result.error);
+      } else {
+        toast.success("Plan actualizado.");
         router.refresh();
       }
       setPendingId(null);
@@ -79,7 +96,21 @@ export function PlatformTenantsTable({
                   {tenant.slug}
                 </TableCell>
                 <TableCell>
-                  <Badge variant="outline">{PLAN_LABELS[tenant.plan]}</Badge>
+                  <select
+                    aria-label={`Plan de ${tenant.name}`}
+                    className={SELECT_CLASS}
+                    value={tenant.plan}
+                    disabled={busy}
+                    onChange={(event) =>
+                      changePlan(tenant.id, event.target.value)
+                    }
+                  >
+                    {SUBSCRIPTION_PLANS.map((plan) => (
+                      <option key={plan} value={plan}>
+                        {PLAN_LABELS[plan]}
+                      </option>
+                    ))}
+                  </select>
                 </TableCell>
                 <TableCell className="text-muted-foreground">
                   {formatDate(tenant.createdAt)}

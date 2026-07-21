@@ -169,7 +169,11 @@ Verificado: `pnpm build` (14 rutas, `/platform` y `/` dinámica por rol) y ESLin
 - [x] Migración `011_platform.sql`: enum `subscription_plan`, `tenants.plan` (default `BASICO`), policy SELECT del SUPER_ADMIN. `types.ts` actualizado.
 - [x] `modules/platform`: `listTenants`, `provisionTenant` (tenant + settings + admin invitado, con compensación), `setTenantActive`. `ProvisionTenantForm` + `PlatformTenantsTable`. Permiso `isPlatformAdmin`.
 - [x] Routing: grupo `(platform)` con layout SUPER_ADMIN; `homeRouteForRole` (SUPER_ADMIN → `/platform`, resto → `/dashboard`) aplicado en `(auth)`, `(dashboard)` y raíz.
-- [x] `SUBSCRIPTION`/plan **preparado** (opción 3): columna `plan` existe y se muestra; falta gestión de plan y validación de límites por plan en los Services.
+- [x] **Suscripciones / planes (Subscription Ready) implementado:**
+  - Cambio de plan por fraccionamiento desde `/platform` (select en la tabla → `updateTenantPlan`, service-role, auditado).
+  - Límites por plan en `core/config/plan-limits.ts` (`PLAN_LIMITS`, ajustables en un solo lugar; `null` = ilimitado). Defaults: Básico 100 residentes / 3 usuarios / 50 comunicados; Profesional 500/10/500; Enterprise ilimitado.
+  - Validación en los Services (CLAUDE.md): `createResident` (maxResidents) e `inviteUser` (maxUsers) leen el plan del tenant (`getTenantPlan`) y lanzan `PlanLimitExceededError` (nuevo `ErrorCode PLAN_LIMIT_EXCEEDED`) si se excede.
+  - [ ] Pendiente extender el check a comunicados (maxAnnouncements) y a almacenamiento cuando exista; el patrón ya está listo (mismo `PLAN_LIMITS` + `isWithinLimit`).
 
 ### Setup requerido por el usuario (una vez)
 
