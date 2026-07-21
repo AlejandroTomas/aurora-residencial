@@ -716,7 +716,6 @@ Tenant Users
 
 - ADMIN
 - GUARD
-- STAFF
 - RESIDENT
 
 Los permisos nunca deben mezclarse entre ambos niveles.

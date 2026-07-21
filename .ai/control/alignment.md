@@ -127,15 +127,35 @@ módulo, DTO+mapper, errores tipados, auditoría en cada escritura y `index.ts` 
 - [x] **Búsqueda en UI:** hecho en Fase 5 (`components/shared/SearchInput` por URL `?q=`, en usuarios/residentes).
 - [ ] Auditoría de login/logout (heredado de Fase 3) y rate limiting siguen pendientes.
 
-## Fase 5 — Layout / UI (pendiente)
+## Fase 5 — Layout / UI
 
 Patrón confirmado por el usuario: `AppLayout` (en `src/components/layouts/Sidebar.tsx`) es el shell reutilizable real; `AdminLayout` es solo un ejemplo de uso con `NavItem[]` fijos. Se sigue este patrón para las páginas de módulos; se abstrae más solo si un módulo lo requiere.
+
+Verificado: `pnpm build` (13 rutas) y ESLint, limpios.
 
 - [x] Sustituir la sesión falsa (`{ username: "Operador", role: "Admin" }`) en `SidebarContent` por la sesión real de Supabase — hecho en Fase 3 (`AppLayout` recibe `user` por props).
 - [x] `NavItem[]` dinámico según rol — hecho en Fase 4 (`buildNavItems` en `(dashboard)/layout.tsx`: secciones admin solo para admins). Pendiente granularidad por permiso fino si se requiere.
 - [x] Route Groups `(auth)` y `(dashboard)` creados en Fase 3. Pendiente `(public)` si aparece contenido público.
+- [x] `components/shared/` — `SearchInput` (búsqueda por URL `?q=`) y `Pagination` (por URL `?page=`), URL-driven y sin `useEffect`. Cableados en usuarios/residentes (búsqueda + paginación) y comunicados (paginación).
+- [x] `(dashboard)/loading.tsx` — skeleton durante la navegación (se mantiene el sidebar).
+- [x] `(dashboard)/error.tsx` — error boundary del área autenticada con mensaje amigable (nunca el error interno) + reintentar.
+- [x] `app/not-found.tsx` — 404 global con enlace al inicio.
 
-## Fase 6 — `.ai/` pendiente
+### Pendiente de Fase 5 (bajo riesgo, opcional)
 
-- [ ] `.ai/checklists/feature.md`, `release.md`, `review.md` (renombrar `review.ms` → `review.md`) — contenido
-- [ ] `.ai/prompts/*.md` — se crean bajo demanda conforme se necesiten (no en bloque)
+- [ ] `loading.tsx`/`error.tsx` por página cuando alguna consulta sea notablemente lenta (hoy basta el del grupo).
+- [ ] Route Group `(public)` cuando exista la URL pública del tenant (documentada en CLAUDE.md).
+
+## Fase 6 — `.ai/`
+
+- [x] Checklists con contenido: `feature.md` (entrega de módulo/feature), `review.md` (code review), `release.md` (release). `review.ms` vacío renombrado → `review.md`.
+- [x] Prompts con contenido: `create-module`, `create-crud`, `create-service`, `create-repository`, `create-form`, `create-policy` — plantillas con placeholders y referencias a los patrones reales (módulo `residents` como canónico).
+
+Todos alineados con `CLAUDE.md` y los `.ai/context/*` (incluye el bloque SaaS: multi-tenant, RLS, límites de plan, auditoría).
+
+## Deuda de alineación con CLAUDE.md (bloque SaaS)
+
+- [x] ~~Rol `STAFF`~~: descartado. El usuario aclaró que los usuarios finales son los residentes y quitó `STAFF` de `CLAUDE.md`; el enum `user_role` (`SUPER_ADMIN, ADMIN, GUARD, RESIDENT`) ahora coincide con el doc.
+- [ ] **Nivel Plataforma (SUPER_ADMIN) sin implementar (prioritario):** hoy todo perfil pertenece a un tenant (`profiles.tenant_id` NOT NULL) y solo existe administración a nivel fraccionamiento. Falta el área de plataforma para el dueño del SaaS: gestionar todos los tenants, alta/provisioning de fraccionamientos (tenant + admin inicial + settings + roles), activar/suspender. Decisión pendiente: cómo modelar al SUPER_ADMIN frente a `tenant_id` y RLS (ver `modules/platform` cuando se cree).
+- [ ] **Campos de Tenant Onboarding faltantes:** `tenant_settings` no cubre dirección, estado, ciudad, país, código postal, sitio web ni **moneda** (CLAUDE.md → Tenant Onboarding). Ampliar tabla + schema + `SettingsForm` cuando se aborde el onboarding completo.
+- [ ] **URL pública del tenant** (Public Information) — nivel plataforma, fuera del MVP actual.
