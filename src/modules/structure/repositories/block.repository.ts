@@ -61,6 +61,24 @@ export const blockRepository = {
     return data.id;
   },
 
+  async insertMany(
+    tenantId: string,
+    streetId: string,
+    names: string[],
+    actorId: string,
+  ): Promise<void> {
+    const supabase = await createSupabaseServerClient();
+    const rows = names.map((name) => ({
+      tenant_id: tenantId,
+      street_id: streetId,
+      name,
+      created_by: actorId,
+      updated_by: actorId,
+    }));
+    const { error } = await supabase.from("blocks").insert(rows);
+    if (error) throw error;
+  },
+
   async rename(
     tenantId: string,
     id: string,

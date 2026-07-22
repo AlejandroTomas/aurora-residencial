@@ -55,6 +55,40 @@ export const lotRepository = {
     return data.id;
   },
 
+  async listNumbers(tenantId: string, blockId: string): Promise<string[]> {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase
+      .from("lots")
+      .select("number")
+      .eq("tenant_id", tenantId)
+      .eq("block_id", blockId)
+      .is("deleted_at", null);
+    if (error) throw error;
+    return (data ?? []).map((row) => row.number);
+  },
+
+  async insertMany(
+    tenantId: string,
+    blockId: string,
+    numbers: string[],
+    status: LotStatus,
+    actorId: string,
+  ): Promise<void> {
+    const supabase = await createSupabaseServerClient();
+    const rows = numbers.map((number) => ({
+      tenant_id: tenantId,
+      block_id: blockId,
+      number,
+      area: null,
+      observations: null,
+      status,
+      created_by: actorId,
+      updated_by: actorId,
+    }));
+    const { error } = await supabase.from("lots").insert(rows);
+    if (error) throw error;
+  },
+
   async update(
     tenantId: string,
     id: string,

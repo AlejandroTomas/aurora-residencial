@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -31,6 +31,7 @@ export function StructureLevel({
   parentId,
   entityLabel,
   childBasePath,
+  extraAction,
   createAction,
   renameAction,
   setActiveAction,
@@ -42,6 +43,8 @@ export function StructureLevel({
   // Component no puede pasar funciones normales a un Client Component). El enlace es
   // `${childBasePath}/${id}`.
   childBasePath?: string;
+  // Acción extra opcional junto al botón "Nueva …" (ej. alta por grupos).
+  extraAction?: ReactNode;
   createAction: NodeAction;
   renameAction: NodeAction;
   setActiveAction: NodeAction;
@@ -69,7 +72,8 @@ export function StructureLevel({
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex flex-wrap justify-end gap-2">
+        {extraAction}
         <NamedNodeDialog
           entityLabel={entityLabel}
           parentId={parentId}

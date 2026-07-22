@@ -56,8 +56,36 @@ export const updateLotSchema = z.object({
   ...lotFields,
 });
 
+// Alta por grupos.
+export const bulkBlocksSchema = z.object({
+  parentId: z.string().uuid("Calle inválida."),
+  names: z
+    .array(nameField)
+    .min(1, "Ingresa al menos un nombre.")
+    .max(200, "Máximo 200 manzanas por operación."),
+});
+
+export const bulkLotsSchema = z
+  .object({
+    blockId: z.string().uuid("Manzana inválida."),
+    prefix: z.string().trim().max(10).optional().or(z.literal("")),
+    from: z.coerce.number().int().min(1, "«Desde» debe ser 1 o mayor."),
+    to: z.coerce.number().int().min(1, "«Hasta» debe ser 1 o mayor."),
+    status: z.enum(LOT_STATUSES),
+  })
+  .refine((data) => data.to >= data.from, {
+    message: "El rango es inválido («Hasta» menor que «Desde»).",
+    path: ["to"],
+  })
+  .refine((data) => data.to - data.from <= 999, {
+    message: "Máximo 1000 lotes por operación.",
+    path: ["to"],
+  });
+
 export type CreateNamedNodeInput = z.infer<typeof createNamedNodeSchema>;
 export type RenameNodeInput = z.infer<typeof renameNodeSchema>;
 export type SetNodeActiveInput = z.infer<typeof setNodeActiveSchema>;
 export type CreateLotInput = z.infer<typeof createLotSchema>;
 export type UpdateLotInput = z.infer<typeof updateLotSchema>;
+export type BulkBlocksInput = z.infer<typeof bulkBlocksSchema>;
+export type BulkLotsInput = z.infer<typeof bulkLotsSchema>;

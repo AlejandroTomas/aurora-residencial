@@ -220,6 +220,7 @@ CRUD jerárquico administrado por el admin, sobre las tablas ya existentes (migr
 - [x] Navegación drill-down: `/estructura` → `/estructura/[stageId]` → `.../[streetId]` → `.../[blockId]`, con back-link en cada nivel.
 - [x] Nav admin: nueva sección "Estructura".
 - [x] Esto **cierra el gap** de Fase 8: un fraccionamiento recién provisionado ya puede crear su estructura y, con ella, recibir registros de residentes de punta a punta.
+- [x] **Alta por grupos:** manzanas (varios nombres a la vez) y lotes (rango numérico con prefijo y estado, omitiendo los que ya existan). `createBlocksBulk`/`createLotsBulk` + `BulkBlocksDialog`/`BulkLotsDialog`. `StructureLevel` acepta `extraAction` para inyectar el botón.
 
 ### Decisiones de Fase 9
 

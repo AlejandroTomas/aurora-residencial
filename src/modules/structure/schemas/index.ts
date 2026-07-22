@@ -4,9 +4,13 @@ export {
   setNodeActiveSchema,
   createLotSchema,
   updateLotSchema,
+  bulkBlocksSchema,
+  bulkLotsSchema,
   type CreateNamedNodeInput,
   type RenameNodeInput,
   type SetNodeActiveInput,
   type CreateLotInput,
   type UpdateLotInput,
+  type BulkBlocksInput,
+  type BulkLotsInput,
 } from "./structure.schema";

@@ -18,3 +18,7 @@ export {
   updateLotAction,
   setLotActiveAction,
 } from "./lot.actions";
+export {
+  createBlocksBulkAction,
+  createLotsBulkAction,
+} from "./bulk.actions";

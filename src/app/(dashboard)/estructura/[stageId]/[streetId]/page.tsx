@@ -10,6 +10,7 @@ import {
 import { getStreet, listBlocks } from "@/modules/structure/server";
 import {
   StructureLevel,
+  BulkBlocksDialog,
   createBlockAction,
   renameBlockAction,
   setBlockActiveAction,
@@ -50,6 +51,7 @@ export default async function BlocksPage({
             parentId={streetId}
             entityLabel="manzana"
             childBasePath={`/estructura/${stageId}/${streetId}`}
+            extraAction={<BulkBlocksDialog streetId={streetId} />}
             createAction={createBlockAction}
             renameAction={renameBlockAction}
             setActiveAction={setBlockActiveAction}

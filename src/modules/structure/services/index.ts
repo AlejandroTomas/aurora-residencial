@@ -18,7 +18,14 @@ export {
   listBlocks,
   getBlock,
   createBlock,
+  createBlocksBulk,
   renameBlock,
   setBlockActive,
 } from "./block.service";
-export { listLots, createLot, updateLot, setLotActive } from "./lot.service";
+export {
+  listLots,
+  createLot,
+  createLotsBulk,
+  updateLot,
+  setLotActive,
+} from "./lot.service";

@@ -9,6 +9,7 @@ import type {
   CreateLotInput,
   UpdateLotInput,
   SetNodeActiveInput,
+  BulkLotsInput,
 } from "../schemas";
 
 function isUniqueViolation(error: unknown): boolean {
@@ -63,6 +64,49 @@ export async function createLot(
     if (isUniqueViolation(error)) throw new DuplicateLotError();
     throw error;
   }
+}
+
+/**
+ * Crea lotes por rango numérico (con prefijo opcional), omitiendo los que ya existan en la
+ * manzana. Devuelve cuántos se crearon y cuántos se omitieron.
+ */
+export async function createLotsBulk(
+  session: AuthSession,
+  input: BulkLotsInput,
+): Promise<{ created: number; skipped: number }> {
+  const block = await blockRepository.findById(session.tenantId, input.blockId);
+  if (!block) throw new StructureNodeNotFoundError("Manzana inválida.");
+
+  const prefix = input.prefix ?? "";
+  const numbers: string[] = [];
+  for (let value = input.from; value <= input.to; value += 1) {
+    numbers.push(`${prefix}${value}`);
+  }
+
+  const existing = new Set(
+    await lotRepository.listNumbers(session.tenantId, input.blockId),
+  );
+  const toCreate = numbers.filter((number) => !existing.has(number));
+
+  if (toCreate.length > 0) {
+    await lotRepository.insertMany(
+      session.tenantId,
+      input.blockId,
+      toCreate,
+      input.status,
+      session.userId,
+    );
+    await recordAudit({
+      tenantId: session.tenantId,
+      userId: session.userId,
+      action: "lot.bulk_created",
+      tableName: "lots",
+      recordId: input.blockId,
+      newData: { created: toCreate.length },
+    });
+  }
+
+  return { created: toCreate.length, skipped: numbers.length - toCreate.length };
 }
 
 export async function updateLot(

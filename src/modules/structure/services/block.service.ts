@@ -9,6 +9,7 @@ import type {
   CreateNamedNodeInput,
   RenameNodeInput,
   SetNodeActiveInput,
+  BulkBlocksInput,
 } from "../schemas";
 
 export async function listBlocks(
@@ -52,6 +53,33 @@ export async function createBlock(
     recordId: id,
     newData: { name: input.name, streetId: input.parentId },
   });
+}
+
+export async function createBlocksBulk(
+  session: AuthSession,
+  input: BulkBlocksInput,
+): Promise<number> {
+  const street = await streetRepository.findById(
+    session.tenantId,
+    input.parentId,
+  );
+  if (!street) throw new StructureNodeNotFoundError("Calle inválida.");
+
+  await blockRepository.insertMany(
+    session.tenantId,
+    input.parentId,
+    input.names,
+    session.userId,
+  );
+  await recordAudit({
+    tenantId: session.tenantId,
+    userId: session.userId,
+    action: "block.bulk_created",
+    tableName: "blocks",
+    recordId: input.parentId,
+    newData: { count: input.names.length },
+  });
+  return input.names.length;
 }
 
 export async function renameBlock(

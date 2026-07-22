@@ -15,6 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LotFormDialog } from "./LotFormDialog";
+import { BulkLotsDialog } from "./BulkLotsDialog";
 import { setLotActiveAction } from "../actions";
 import { LOT_STATUS_LABELS } from "../constants";
 import type { LotDto } from "../types";
@@ -49,7 +50,8 @@ export function LotList({
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex flex-wrap justify-end gap-2">
+        <BulkLotsDialog blockId={blockId} />
         <LotFormDialog
           blockId={blockId}
           trigger={
