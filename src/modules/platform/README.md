@@ -10,9 +10,10 @@ Los dos niveles (Plataforma y Tenant) nunca se mezclan (CLAUDE.md → Platform H
 
 - `listTenants(session)` — lista todos los fraccionamientos (server-only). Lectura vía RLS
   (`tenants_select_platform` permite al SUPER_ADMIN ver todos).
-- `provisionTenant(session, input, redirectTo)` — alta completa: crea el tenant, su
-  `tenant_settings` y su administrador inicial (invitado por correo). Compensa (borra lo
-  creado) si un paso falla.
+- `provisionTenant(session, input)` — alta completa: crea el tenant, su `tenant_settings` y
+  su administrador inicial (cuenta **ya confirmada con contraseña temporal generada**, sin
+  correo de verificación). Devuelve las credenciales para entregarlas una sola vez. Compensa
+  (borra lo creado) si un paso falla.
 - `setTenantActive(session, input)` — activa o suspende un fraccionamiento.
 
 ## Modelo del SUPER_ADMIN

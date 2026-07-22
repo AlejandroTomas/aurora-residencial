@@ -260,6 +260,13 @@ Sobre el bucket `tenant-files` y las tablas `documents`/`announcement_documents`
 - [ ] Límite de almacenamiento por plan (el patrón `PLAN_LIMITS` está listo; falta sumar tamaño por tenant).
 - [ ] Mostrar el logo en el sidebar (hoy solo en Configuración).
 
+## Correcciones
+
+- [x] **Residentes por teléfono (sin correo):** el registro (`/registro/{slug}`) y el login usan **teléfono + contraseña**. Supabase Auth exige un identificador, así que se deriva un **correo sintético** determinista del teléfono (`core/utils/phoneToAuthEmail`, dominio `residente.fraccionamiento.app`) con la cuenta ya confirmada (sin validación). El login (`/login`) acepta correo (admins) o teléfono (residentes) en un solo campo; `loginService` decide. No se propaga el correo sintético al residente ni se le envían correos (`isPhoneAuthEmail`); `RequestsTable` muestra teléfono; `ProfileForm` oculta el correo sintético. Teléfono único a nivel plataforma (un teléfono = una cuenta) — suficiente para MVP.
+- [x] **`/estructura` crasheaba** ("Functions cannot be passed directly to Client Components"): `StructureLevel` (client) recibía `childBasePath` como **función** desde un Server Component (solo se permiten Server Actions, no funciones normales). Fix: `childBasePath` ahora es un **string** (prefijo de ruta) y el `href` se arma en el componente. No lo detecta `typecheck`, solo el runtime.
+- [x] **Provisioning sin correo:** el alta de un fraccionamiento ahora crea la cuenta del admin **ya confirmada con contraseña temporal generada** (`admin.createUser({ email_confirm: true })`), sin invitación por correo. La UI muestra las credenciales una sola vez (correo + contraseña, con Copiar). El admin la cambia en su perfil. (La invitación de usuarios en `/usuarios` sigue por correo; se puede migrar al mismo enfoque si se desea.)
+- [x] **Enlaces de invitación fallaban con `otp_expired`.** Las invitaciones (provisioning de admin y `/usuarios`) se generan en el servidor (admin API), así que no hay `code_verifier` para el flujo PKCE de `/auth/callback`. Fix: nuevo route `app/auth/confirm/route.ts` que usa `verifyOtp({ token_hash, type })` (no requiere `code_verifier`); el `redirectTo` de las invitaciones ahora apunta al destino final (`/reset-password`). **Requiere** actualizar el template "Invite user" en Supabase para usar `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite&next=/reset-password` (ver `TESTING.md` §3). La recuperación de contraseña sigue por `/auth/callback` (PKCE) y no cambia.
+
 ## Pedido FINAL — completado
 
 - [x] **MD de pruebas** creado en `TESTING.md` (raíz): estructura del proyecto, setup

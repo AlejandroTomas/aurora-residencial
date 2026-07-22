@@ -1,8 +1,9 @@
 import "server-only";
 import { logger } from "@/core/logger";
+import { phoneToAuthEmail } from "@/core/utils";
 import { publicRegistrationRepository } from "../repositories";
 import {
-  EmailTakenError,
+  PhoneTakenError,
   RegistrationError,
   TenantNotAvailableError,
 } from "../errors";
@@ -18,12 +19,10 @@ function isUniqueViolation(error: unknown): boolean {
 }
 
 /**
- * Caso de uso: registro autoservicio de un residente. Crea su cuenta (ya confirmada), su
- * perfil RESIDENT y una solicitud de asociación PENDIENTE al lote elegido. NUNCA lo asocia
- * automáticamente: un administrador debe aprobar la solicitud.
- *
- * Es un flujo público (sin sesión), por eso todo va con service-role acotado al tenant del
- * slug. Compensa borrando la cuenta si el alta del perfil/solicitud falla.
+ * Caso de uso: registro autoservicio de un residente con **teléfono + contraseña** (sin
+ * correo). Se deriva un correo sintético interno del teléfono para Supabase Auth y se crea
+ * la cuenta ya confirmada (sin validación). Crea el perfil RESIDENT y una solicitud
+ * PENDIENTE; NUNCA asocia el lote automáticamente. Compensa si algún paso falla.
  */
 export async function register(input: RegisterInput): Promise<void> {
   const tenant = await publicRegistrationRepository.findActiveTenantBySlug(
@@ -37,15 +36,19 @@ export async function register(input: RegisterInput): Promise<void> {
   );
   if (!lotOk) throw new RegistrationError("El lote seleccionado no es válido.");
 
+  const authEmail = phoneToAuthEmail(input.phone);
+
   const { userId, error } = await publicRegistrationRepository.createAuthUser(
-    input.email,
+    authEmail,
     input.password,
   );
   if (!userId) {
+    logger.warn("Fallo al crear la cuenta del residente", {
+      error,
+    });
     if (error && /registered|already|exists/i.test(error)) {
-      throw new EmailTakenError();
+      throw new PhoneTakenError();
     }
-    logger.warn("Fallo al crear la cuenta del residente", { error });
     throw new RegistrationError();
   }
 
@@ -53,7 +56,7 @@ export async function register(input: RegisterInput): Promise<void> {
     await publicRegistrationRepository.createProfile({
       userId,
       tenantId: tenant.id,
-      email: input.email,
+      email: authEmail,
       fullName: input.fullName,
     });
     await publicRegistrationRepository.createRequest({
@@ -61,12 +64,12 @@ export async function register(input: RegisterInput): Promise<void> {
       profileId: userId,
       lotId: input.lotId,
       fullName: input.fullName,
-      email: input.email,
-      phone: input.phone || null,
+      email: authEmail,
+      phone: input.phone,
     });
   } catch (registrationError) {
     await publicRegistrationRepository.deleteAuthUser(userId);
-    if (isUniqueViolation(registrationError)) throw new EmailTakenError();
+    if (isUniqueViolation(registrationError)) throw new PhoneTakenError();
     throw registrationError;
   }
 }

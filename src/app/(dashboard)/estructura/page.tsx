@@ -31,7 +31,7 @@ export default async function StagesPage() {
         <StructureLevel
           nodes={stages}
           entityLabel="etapa"
-          childBasePath={(id) => `/estructura/${id}`}
+          childBasePath="/estructura"
           createAction={createStageAction}
           renameAction={renameStageAction}
           setActiveAction={setStageActiveAction}

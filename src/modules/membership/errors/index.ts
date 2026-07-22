@@ -12,6 +12,12 @@ export class EmailTakenError extends ConflictError {
   }
 }
 
+export class PhoneTakenError extends ConflictError {
+  constructor() {
+    super("Ya existe una cuenta con ese teléfono.");
+  }
+}
+
 export class RequestNotFoundError extends NotFoundError {
   constructor() {
     super("No se encontró la solicitud.");

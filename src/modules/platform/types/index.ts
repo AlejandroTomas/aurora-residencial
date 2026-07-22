@@ -12,3 +12,10 @@ export interface PlatformTenantDto {
   plan: SubscriptionPlan;
   createdAt: string;
 }
+
+/** Resultado del alta de un fraccionamiento: credenciales del admin inicial (una sola vez). */
+export interface ProvisionResult {
+  tenantName: string;
+  adminEmail: string;
+  adminPassword: string;
+}

@@ -36,13 +36,19 @@ export const provisioningRepository = {
     if (error) throw error;
   },
 
-  async inviteAdmin(
+  /**
+   * Crea la cuenta del admin ya confirmada, con una contraseña temporal. No envía correo:
+   * las credenciales se entregan a quien provisiona (ver `provisionTenant`).
+   */
+  async createUserWithPassword(
     email: string,
-    redirectTo: string,
+    password: string,
   ): Promise<{ userId: string | null; error: string | null }> {
     const supabase = createSupabaseServiceRoleClient();
-    const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
-      redirectTo,
+    const { data, error } = await supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
     });
     return { userId: data.user?.id ?? null, error: error?.message ?? null };
   },

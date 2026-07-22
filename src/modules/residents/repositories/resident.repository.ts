@@ -136,7 +136,7 @@ export const residentRepository = {
     lotId: string;
     profileId: string;
     fullName: string;
-    email: string;
+    email: string | null;
     phone: string | null;
     actorId: string;
   }): Promise<string> {

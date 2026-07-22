@@ -49,7 +49,7 @@ export default async function StreetsPage({
             nodes={streets}
             parentId={stageId}
             entityLabel="calle"
-            childBasePath={(id) => `/estructura/${stageId}/${id}`}
+            childBasePath={`/estructura/${stageId}`}
             createAction={createStreetAction}
             renameAction={renameStreetAction}
             setActiveAction={setStreetActiveAction}

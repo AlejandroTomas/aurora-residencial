@@ -4,15 +4,14 @@ import { slugify } from "@/core/utils";
 import { logger } from "@/core/logger";
 import type { AuthSession } from "@/modules/auth/server";
 import { platformTenantRepository, provisioningRepository } from "../repositories";
-import { toPlatformTenantDto } from "../mappers";
+import { generateTempPassword } from "../utils/generate-temp-password";
 import {
-  PlatformTenantNotFoundError,
   TenantAdminExistsError,
   TenantSlugTakenError,
   ProvisioningError,
 } from "../errors";
 import type { ProvisionTenantInput } from "../schemas";
-import type { PlatformTenantDto } from "../types";
+import type { ProvisionResult } from "../types";
 
 const MAX_SLUG_ATTEMPTS = 50;
 
@@ -30,14 +29,14 @@ async function resolveUniqueSlug(name: string): Promise<string> {
 
 /**
  * Caso de uso: dar de alta un fraccionamiento completo (tenant + configuración + admin
- * inicial invitado). Si algún paso posterior a crear el tenant falla, se compensa
- * eliminando lo creado para no dejar recursos huérfanos.
+ * inicial). El admin se crea con la cuenta **ya confirmada** y una contraseña temporal
+ * generada, sin correo de verificación: las credenciales se devuelven para entregarlas.
+ * Si algún paso falla se compensa eliminando lo creado.
  */
 export async function provisionTenant(
   session: AuthSession,
   input: ProvisionTenantInput,
-  inviteRedirectTo: string,
-): Promise<PlatformTenantDto> {
+): Promise<ProvisionResult> {
   const slug = await resolveUniqueSlug(input.tenantName);
 
   const tenantId = await provisioningRepository.createTenant({
@@ -46,35 +45,36 @@ export async function provisionTenant(
     actorId: session.userId,
   });
 
-  let invitedUserId: string | null = null;
+  const password = generateTempPassword();
+  let createdUserId: string | null = null;
   try {
     await provisioningRepository.createSettings(tenantId, session.userId);
 
-    const invite = await provisioningRepository.inviteAdmin(
+    const created = await provisioningRepository.createUserWithPassword(
       input.adminEmail,
-      inviteRedirectTo,
+      password,
     );
-    if (!invite.userId) {
-      logger.warn("Fallo al invitar admin del tenant", {
+    if (!created.userId) {
+      logger.warn("Fallo al crear la cuenta del admin", {
         tenantId,
-        error: invite.error,
+        error: created.error,
       });
-      if (invite.error && /registered|already|exists/i.test(invite.error)) {
+      if (created.error && /registered|already|exists/i.test(created.error)) {
         throw new TenantAdminExistsError();
       }
       throw new ProvisioningError();
     }
-    invitedUserId = invite.userId;
+    createdUserId = created.userId;
 
     await provisioningRepository.createAdminProfile({
-      userId: invitedUserId,
+      userId: createdUserId,
       tenantId,
       email: input.adminEmail,
       fullName: input.adminFullName,
     });
   } catch (error) {
-    if (invitedUserId) {
-      await provisioningRepository.deleteAuthUser(invitedUserId);
+    if (createdUserId) {
+      await provisioningRepository.deleteAuthUser(createdUserId);
     }
     await provisioningRepository.deleteTenant(tenantId);
     throw error;
@@ -89,7 +89,9 @@ export async function provisionTenant(
     newData: { name: input.tenantName, slug, adminEmail: input.adminEmail },
   });
 
-  const record = await platformTenantRepository.findById(tenantId);
-  if (!record) throw new PlatformTenantNotFoundError();
-  return toPlatformTenantDto(record);
+  return {
+    tenantName: input.tenantName,
+    adminEmail: input.adminEmail,
+    adminPassword: password,
+  };
 }

@@ -49,7 +49,7 @@ export default async function BlocksPage({
             nodes={blocks}
             parentId={streetId}
             entityLabel="manzana"
-            childBasePath={(id) => `/estructura/${stageId}/${streetId}/${id}`}
+            childBasePath={`/estructura/${stageId}/${streetId}`}
             createAction={createBlockAction}
             renameAction={renameBlockAction}
             setActiveAction={setBlockActiveAction}

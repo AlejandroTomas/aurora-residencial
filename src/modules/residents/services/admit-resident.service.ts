@@ -10,7 +10,7 @@ interface AdmitResidentInput {
   profileId: string;
   lotId: string;
   fullName: string;
-  email: string;
+  email: string | null;
   phone: string | null;
 }
 

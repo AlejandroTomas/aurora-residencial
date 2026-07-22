@@ -1,17 +1,15 @@
 import { z } from "zod";
 
 /**
- * Se normaliza el correo (trim + minúsculas) antes de validar (security.md:
- * "Normalizar correos"). La contraseña solo se exige presente: nunca se revelan
- * las reglas de complejidad en el login para no facilitar ataques.
+ * El identificador puede ser un **correo** (admins/plataforma) o un **teléfono** (residentes).
+ * Se normaliza en el Service según el caso. La contraseña solo se exige presente: nunca se
+ * revelan las reglas de complejidad en el login para no facilitar ataques.
  */
 export const loginSchema = z.object({
-  email: z
+  identifier: z
     .string()
     .trim()
-    .toLowerCase()
-    .min(1, "El correo es obligatorio.")
-    .email("Ingresa un correo válido."),
+    .min(1, "Ingresa tu correo o teléfono."),
   password: z.string().min(1, "La contraseña es obligatoria."),
 });
 

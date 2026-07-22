@@ -7,6 +7,7 @@ export const AUTH_ROUTES = {
   forgotPassword: "/forgot-password",
   resetPassword: "/reset-password",
   callback: "/auth/callback",
+  confirm: "/auth/confirm",
   afterLogin: "/dashboard",
   platform: "/platform",
 } as const;

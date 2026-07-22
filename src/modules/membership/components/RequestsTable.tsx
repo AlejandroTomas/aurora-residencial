@@ -54,7 +54,7 @@ export function RequestsTable({
         <TableHeader>
           <TableRow>
             <TableHead>Nombre</TableHead>
-            <TableHead>Correo</TableHead>
+            <TableHead>Teléfono</TableHead>
             <TableHead>Lote solicitado</TableHead>
             <TableHead>Fecha</TableHead>
             <TableHead className="text-right">Acciones</TableHead>
@@ -69,7 +69,7 @@ export function RequestsTable({
                   {request.fullName}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  {request.email}
+                  {request.phone ?? "—"}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
                   {request.lotLabel}

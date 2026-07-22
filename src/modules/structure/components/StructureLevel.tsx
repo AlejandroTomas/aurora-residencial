@@ -38,7 +38,10 @@ export function StructureLevel({
   nodes: NamedNode[];
   parentId?: string;
   entityLabel: string;
-  childBasePath?: (id: string) => string;
+  // Prefijo de ruta del nivel hijo (string serializable, NO una función: un Server
+  // Component no puede pasar funciones normales a un Client Component). El enlace es
+  // `${childBasePath}/${id}`.
+  childBasePath?: string;
   createAction: NodeAction;
   renameAction: NodeAction;
   setActiveAction: NodeAction;
@@ -103,7 +106,7 @@ export function StructureLevel({
                     <TableCell className="font-medium">
                       {childBasePath ? (
                         <Link
-                          href={childBasePath(node.id)}
+                          href={`${childBasePath}/${node.id}`}
                           className="inline-flex items-center gap-1 hover:underline"
                         >
                           {node.name}

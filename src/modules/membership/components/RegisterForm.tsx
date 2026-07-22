@@ -34,9 +34,8 @@ export function RegisterForm({
     defaultValues: {
       slug,
       fullName: "",
-      email: "",
-      password: "",
       phone: "",
+      password: "",
       lotId: "",
     },
   });
@@ -56,7 +55,7 @@ export function RegisterForm({
         <p className="text-sm text-muted-foreground">
           ¡Listo! Enviamos tu solicitud de registro. Un administrador la revisará
           y aprobará tu asociación al lote. Ya puedes iniciar sesión con tu
-          correo y contraseña.
+          teléfono y contraseña.
         </p>
         <Button asChild className="w-full">
           <Link href="/login">Ir a iniciar sesión</Link>
@@ -82,17 +81,20 @@ export function RegisterForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="reg-email">Correo</Label>
+        <Label htmlFor="reg-phone">Teléfono</Label>
         <Input
-          id="reg-email"
-          type="email"
-          autoComplete="email"
-          aria-invalid={Boolean(errors.email)}
-          {...register("email")}
+          id="reg-phone"
+          type="tel"
+          autoComplete="tel"
+          aria-invalid={Boolean(errors.phone)}
+          {...register("phone")}
         />
-        {errors.email && (
-          <p className="text-xs text-destructive">{errors.email.message}</p>
+        {errors.phone && (
+          <p className="text-xs text-destructive">{errors.phone.message}</p>
         )}
+        <p className="text-xs text-muted-foreground">
+          Iniciarás sesión con tu teléfono y contraseña.
+        </p>
       </div>
 
       <div className="space-y-2">
@@ -121,18 +123,6 @@ export function RegisterForm({
         </div>
         {errors.password && (
           <p className="text-xs text-destructive">{errors.password.message}</p>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="reg-phone">Teléfono (opcional)</Label>
-        <Input
-          id="reg-phone"
-          aria-invalid={Boolean(errors.phone)}
-          {...register("phone")}
-        />
-        {errors.phone && (
-          <p className="text-xs text-destructive">{errors.phone.message}</p>
         )}
       </div>
 

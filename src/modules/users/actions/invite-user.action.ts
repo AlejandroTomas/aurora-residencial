@@ -30,7 +30,9 @@ export async function inviteUserAction(
     if (!origin) {
       return { success: false, error: "No se pudo procesar la solicitud." };
     }
-    const redirectTo = `${origin}${AUTH_ROUTES.callback}?next=${AUTH_ROUTES.resetPassword}`;
+    // Invitación (enlace generado en servidor): el correo apunta a /auth/confirm con
+    // token_hash (verifyOtp), y tras confirmar lleva a este destino a definir contraseña.
+    const redirectTo = `${origin}${AUTH_ROUTES.resetPassword}`;
 
     const dto = await inviteUser(session, parsed.data, redirectTo);
     revalidatePath("/usuarios");

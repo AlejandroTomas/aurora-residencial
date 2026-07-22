@@ -23,7 +23,7 @@ export function LoginForm() {
     formState: { errors, isSubmitting },
   } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: "", password: "" },
+    defaultValues: { identifier: "", password: "" },
   });
 
   const onSubmit = handleSubmit(async (values) => {
@@ -39,17 +39,19 @@ export function LoginForm() {
   return (
     <form onSubmit={onSubmit} className="space-y-4" noValidate>
       <div className="space-y-2">
-        <Label htmlFor="email">Correo</Label>
+        <Label htmlFor="identifier">Correo o teléfono</Label>
         <Input
-          id="email"
-          type="email"
-          autoComplete="email"
-          placeholder="tu@correo.com"
-          aria-invalid={Boolean(errors.email)}
-          {...register("email")}
+          id="identifier"
+          type="text"
+          autoComplete="username"
+          placeholder="tu@correo.com o tu teléfono"
+          aria-invalid={Boolean(errors.identifier)}
+          {...register("identifier")}
         />
-        {errors.email && (
-          <p className="text-xs text-destructive">{errors.email.message}</p>
+        {errors.identifier && (
+          <p className="text-xs text-destructive">
+            {errors.identifier.message}
+          </p>
         )}
       </div>
 

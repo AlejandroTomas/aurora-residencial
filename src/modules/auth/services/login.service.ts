@@ -1,6 +1,7 @@
 import "server-only";
 import { logger } from "@/core/logger";
 import { recordAudit } from "@/core/services";
+import { phoneToAuthEmail } from "@/core/utils";
 import { authRepository, profileRepository } from "../repositories";
 import { toAuthSession } from "../mappers";
 import { InvalidCredentialsError, SessionError } from "../errors";
@@ -15,13 +16,18 @@ import type { AuthSession } from "../types";
  * sesión inmediatamente para no dejar cookies de una cuenta inutilizable.
  */
 export async function loginService(input: LoginInput): Promise<AuthSession> {
+  // Un correo (contiene "@") se usa tal cual; un teléfono se convierte al correo sintético.
+  const authEmail = input.identifier.includes("@")
+    ? input.identifier.toLowerCase()
+    : phoneToAuthEmail(input.identifier);
+
   const { data, error } = await authRepository.signInWithPassword(
-    input.email,
+    authEmail,
     input.password,
   );
 
   if (error || !data.user) {
-    logger.info("Intento de login fallido", { email: input.email });
+    logger.info("Intento de login fallido", { identifier: input.identifier });
     throw new InvalidCredentialsError();
   }
 

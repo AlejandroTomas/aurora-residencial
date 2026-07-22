@@ -1,6 +1,7 @@
 import "server-only";
 import { recordAudit } from "@/core/services";
 import { sendEmail } from "@/core/email";
+import { isPhoneAuthEmail } from "@/core/utils";
 import type { AuthSession } from "@/modules/auth/server";
 import { admitResident } from "@/modules/residents/server";
 import { membershipRequestRepository } from "../repositories";
@@ -29,12 +30,15 @@ export async function approveRequest(
     session.tenantId,
     request.profile_id,
   );
+  // Los residentes por teléfono tienen un correo sintético interno: no se propaga al
+  // registro del residente (se guarda su teléfono como contacto).
+  const isPhoneAccount = isPhoneAuthEmail(request.email);
   if (!alreadyResident) {
     await admitResident(session, {
       profileId: request.profile_id,
       lotId: request.lot_id,
       fullName: request.full_name,
-      email: request.email,
+      email: isPhoneAccount ? null : request.email,
       phone: request.phone,
     });
   }
@@ -55,6 +59,13 @@ export async function approveRequest(
     recordId: request.id,
   });
 
-  const email = renderApprovalEmail(request.full_name, loginUrl);
-  await sendEmail({ to: request.email, subject: email.subject, html: email.html });
+  // Solo se notifica por correo a cuentas con correo real (no a las de teléfono).
+  if (!isPhoneAccount) {
+    const email = renderApprovalEmail(request.full_name, loginUrl);
+    await sendEmail({
+      to: request.email,
+      subject: email.subject,
+      html: email.html,
+    });
+  }
 }

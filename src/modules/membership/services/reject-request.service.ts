@@ -1,6 +1,7 @@
 import "server-only";
 import { recordAudit } from "@/core/services";
 import { sendEmail } from "@/core/email";
+import { isPhoneAuthEmail } from "@/core/utils";
 import type { AuthSession } from "@/modules/auth/server";
 import { membershipRequestRepository } from "../repositories";
 import { RequestAlreadyReviewedError, RequestNotFoundError } from "../errors";
@@ -35,6 +36,12 @@ export async function rejectRequest(
     recordId: request.id,
   });
 
-  const email = renderRejectionEmail(request.full_name, input.comment || null);
-  await sendEmail({ to: request.email, subject: email.subject, html: email.html });
+  if (!isPhoneAuthEmail(request.email)) {
+    const email = renderRejectionEmail(request.full_name, input.comment || null);
+    await sendEmail({
+      to: request.email,
+      subject: email.subject,
+      html: email.html,
+    });
+  }
 }

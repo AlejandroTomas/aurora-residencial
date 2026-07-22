@@ -52,9 +52,20 @@ historial reparado). Todas están en `supabase/migrations/`:
 | 013   | membership_requests              | solicitudes de registro de residentes                 |
 | 014   | rate_limits                      | `rate_limit_hits`                                     |
 
-**Configuración de Auth:** Supabase → Authentication → URL Configuration → *Redirect URLs*
-debe incluir `http://localhost:3000/auth/callback` (recuperación de contraseña e
-invitaciones).
+**Configuración de Auth (importante):** Supabase → Authentication.
+
+- **URL Configuration → Site URL:** `http://localhost:3000`.
+- **URL Configuration → Redirect URLs:** agrega
+  `http://localhost:3000/auth/callback`, `http://localhost:3000/auth/confirm` y
+  `http://localhost:3000/reset-password`.
+- **Email Templates → "Invite user":** las invitaciones se generan en el servidor, así que
+  el enlace debe usar `token_hash` (no PKCE). Reemplaza el enlace del template por:
+  ```html
+  <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite&next=/reset-password">Aceptar invitación y crear contraseña</a>
+  ```
+  Sin este cambio, el correo de invitación llega pero al abrirlo da
+  `otp_expired / Email link is invalid or has expired`. (La recuperación de contraseña usa el
+  otro flujo y funciona con el template por defecto.)
 
 Seeds (`supabase/seeds/`): `seed.sql` (tenant demo con jerarquía) y `platform.sql` (ver §5).
 
@@ -89,13 +100,11 @@ Al iniciar sesión, un `SUPER_ADMIN` cae en `/platform`; el resto en `/dashboard
 
 ### 5.2 ADMIN (administrador de un fraccionamiento)
 
-**Opción recomendada (provisioning):** como `SUPER_ADMIN`, en `/platform` → **Nuevo
-fraccionamiento**. Se crea el tenant + su configuración + se **invita por correo** al admin
-inicial. El admin abre el correo, define contraseña e inicia sesión → cae en `/dashboard`.
-
-> Sin `RESEND_API_KEY`, la invitación no se envía por correo (se registra en log). Para
-> pruebas locales puedes: (a) configurar Resend, o (b) crear el admin a mano (cuenta en Auth
-> + fila en `profiles` con `role='ADMIN'` y el `tenant_id` del fraccionamiento).
+Como `SUPER_ADMIN`, en `/platform` → **Nuevo fraccionamiento**. Se crea el tenant + su
+configuración + la **cuenta del admin ya confirmada con una contraseña temporal generada**
+(sin correo de verificación). Al terminar, el diálogo **muestra las credenciales una sola
+vez** (correo + contraseña, con botón Copiar): entrégaselas al admin, que inicia sesión y
+puede cambiar la contraseña en su perfil.
 
 ### 5.3 GUARD (caseta)
 
@@ -106,9 +115,12 @@ definir contraseña. Verá el padrón de residentes en modo solo lectura.
 
 1. El `ADMIN` primero crea la **estructura** (§7.3) para que existan lotes.
 2. En `/platform`, copia el **slug** del fraccionamiento (columna Identificador).
-3. Abre `/registro/{slug}` (ventana anónima): nombre, correo, contraseña, **elige lote** →
-   enviar. La cuenta queda lista para iniciar sesión; la solicitud queda **pendiente**.
-4. El `RESIDENT` inicia sesión → verá "solicitud en revisión" en su dashboard.
+3. Abre `/registro/{slug}` (ventana anónima): nombre, **teléfono**, contraseña, **elige
+   lote** → enviar. La cuenta queda lista para iniciar sesión; la solicitud queda
+   **pendiente**. (Sin correo: los residentes usan **teléfono + contraseña**; internamente
+   se genera un correo sintético que nunca se envía.)
+4. El `RESIDENT` inicia sesión en `/login` con su **teléfono** y contraseña → verá
+   "solicitud en revisión" en su dashboard.
 5. El `ADMIN` va a `/solicitudes` → **Aprobar** (o Rechazar con motivo). Al aprobar, el
    residente queda registrado y ligado a su lote.
 
@@ -154,7 +166,7 @@ Marca cada uno al probarlo. Entre paréntesis, el rol necesario.
 
 ### 7.1 Autenticación (todos)
 
-- [ ] Iniciar sesión con credenciales válidas → entra según rol.
+- [ ] Iniciar sesión con **correo** (admin/plataforma) o **teléfono** (residente) + contraseña → entra según rol.
 - [ ] Credenciales inválidas → "Correo o contraseña incorrectos".
 - [ ] Cerrar sesión (botón del sidebar) → vuelve a `/login`.
 - [ ] "¿Olvidaste tu contraseña?" → correo → enlace → `/reset-password` → nueva contraseña.

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ROLE_LABELS } from "@/modules/users";
+import { isPhoneAuthEmail } from "@/core/utils";
 import { updateProfileSchema, type UpdateProfileInput } from "../schemas";
 import { updateMyProfileAction } from "../actions";
 import type { ProfileDto } from "../types";
@@ -38,10 +39,12 @@ export function ProfileForm({ profile }: { profile: ProfileDto }) {
   return (
     <form onSubmit={onSubmit} className="space-y-4" noValidate>
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="profile-email">Correo</Label>
-          <Input id="profile-email" value={profile.email} readOnly disabled />
-        </div>
+        {!isPhoneAuthEmail(profile.email) && (
+          <div className="space-y-2">
+            <Label htmlFor="profile-email">Correo</Label>
+            <Input id="profile-email" value={profile.email} readOnly disabled />
+          </div>
+        )}
         <div className="space-y-2">
           <Label htmlFor="profile-role">Rol</Label>
           <Input
