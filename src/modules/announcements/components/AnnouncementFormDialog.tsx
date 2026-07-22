@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import {
   Dialog,
   DialogClose,
@@ -30,7 +30,9 @@ const TEXTAREA_CLASS =
 
 interface AnnouncementFormDialogProps {
   announcement?: AnnouncementDto;
-  trigger: ReactNode;
+  // Opcional: si se omite se usa un botón "Nuevo comunicado" creado aquí (cliente). No
+  // pasar un trigger creado en un Server Component (rompe el `asChild` de Radix al cruzar RSC).
+  trigger?: ReactNode;
 }
 
 export function AnnouncementFormDialog({
@@ -72,7 +74,14 @@ export function AnnouncementFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogTrigger asChild>
+        {trigger ?? (
+          <Button>
+            <Plus className="h-4 w-4" />
+            Nuevo comunicado
+          </Button>
+        )}
+      </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>

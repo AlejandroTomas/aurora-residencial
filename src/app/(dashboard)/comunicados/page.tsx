@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
-import { Megaphone, Plus } from "lucide-react";
+import { Megaphone } from "lucide-react";
 import PageScaffold from "@/components/layouts/PageScaffold";
-import { Button } from "@/components/ui/button";
 import { Pagination } from "@/components/shared";
 import { DEFAULT_PAGE_SIZE } from "@/core/types";
 import { parsePageParam } from "@/core/utils";
@@ -42,16 +41,7 @@ export default async function AnnouncementsPage({
       }
       icon={<Megaphone className="h-5 w-5 text-white" />}
       headerActions={
-        isAdmin ? (
-          <AnnouncementFormDialog
-            trigger={
-              <Button>
-                <Plus className="h-4 w-4" />
-                Nuevo comunicado
-              </Button>
-            }
-          />
-        ) : undefined
+        isAdmin ? <AnnouncementFormDialog /> : undefined
       }
     >
       <div className="space-y-4">

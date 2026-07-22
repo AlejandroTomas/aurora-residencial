@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import {
   Dialog,
   DialogClose,
@@ -28,7 +28,10 @@ const SELECT_CLASS =
 interface ResidentFormDialogProps {
   lots: LotOption[];
   resident?: ResidentDto;
-  trigger: ReactNode;
+  // Opcional: si se omite se usa un botón "Nuevo residente" creado aquí (cliente). El
+  // trigger NUNCA debe crearse en un Server Component y pasarse: al cruzar la frontera RSC
+  // rompe el `asChild` de Radix ("failed to slot onto its children").
+  trigger?: ReactNode;
 }
 
 export function ResidentFormDialog({
@@ -73,7 +76,14 @@ export function ResidentFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogTrigger asChild>
+        {trigger ?? (
+          <Button>
+            <Plus className="h-4 w-4" />
+            Nuevo residente
+          </Button>
+        )}
+      </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>

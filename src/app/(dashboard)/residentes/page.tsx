@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
-import { Building2, Plus } from "lucide-react";
+import { Building2 } from "lucide-react";
 import PageScaffold from "@/components/layouts/PageScaffold";
-import { Button } from "@/components/ui/button";
 import { SearchInput, Pagination } from "@/components/shared";
 import { DEFAULT_PAGE_SIZE } from "@/core/types";
 import { parsePageParam } from "@/core/utils";
@@ -44,17 +43,7 @@ export default async function ResidentsPage({
       subtitle="Padrón del fraccionamiento"
       icon={<Building2 className="h-5 w-5 text-white" />}
       headerActions={
-        isAdmin ? (
-          <ResidentFormDialog
-            lots={lots}
-            trigger={
-              <Button>
-                <Plus className="h-4 w-4" />
-                Nuevo residente
-              </Button>
-            }
-          />
-        ) : undefined
+        isAdmin ? <ResidentFormDialog lots={lots} /> : undefined
       }
     >
       <section className="space-y-4 rounded-xl border border-border bg-card p-4">
