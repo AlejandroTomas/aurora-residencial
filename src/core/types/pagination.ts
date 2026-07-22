@@ -29,3 +29,22 @@ export function toRange({ page, pageSize }: PaginationParams): {
   const from = (page - 1) * pageSize;
   return { from, to: from + pageSize - 1 };
 }
+
+/**
+ * Pagina en memoria un arreglo ya ordenado. Útil cuando el orden no se puede expresar en
+ * SQL (ej. orden natural) y el conjunto está acotado.
+ */
+export function paginateArray<TItem>(
+  items: TItem[],
+  { page, pageSize }: PaginationParams,
+): Paginated<TItem> {
+  const total = items.length;
+  const from = (page - 1) * pageSize;
+  return {
+    items: items.slice(from, from + pageSize),
+    page,
+    pageSize,
+    total,
+    totalPages: Math.max(1, Math.ceil(total / pageSize)),
+  };
+}

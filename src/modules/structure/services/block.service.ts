@@ -1,5 +1,6 @@
 import "server-only";
 import { recordAudit } from "@/core/services";
+import { naturalCompare } from "@/core/utils";
 import type { AuthSession } from "@/modules/auth/server";
 import { blockRepository, streetRepository } from "../repositories";
 import { toBlockDto } from "../mappers";
@@ -17,7 +18,7 @@ export async function listBlocks(
   streetId: string,
 ): Promise<BlockDto[]> {
   const rows = await blockRepository.listByStreet(session.tenantId, streetId);
-  return rows.map(toBlockDto);
+  return rows.map(toBlockDto).sort((a, b) => naturalCompare(a.name, b.name));
 }
 
 export async function getBlock(

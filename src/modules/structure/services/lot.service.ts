@@ -1,5 +1,6 @@
 import "server-only";
 import { recordAudit } from "@/core/services";
+import { naturalCompare } from "@/core/utils";
 import type { AuthSession } from "@/modules/auth/server";
 import { lotRepository, blockRepository } from "../repositories";
 import { toLotDto } from "../mappers";
@@ -30,7 +31,7 @@ export async function listLots(
   blockId: string,
 ): Promise<LotDto[]> {
   const rows = await lotRepository.listByBlock(session.tenantId, blockId);
-  return rows.map(toLotDto);
+  return rows.map(toLotDto).sort((a, b) => naturalCompare(a.number, b.number));
 }
 
 export async function createLot(

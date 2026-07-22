@@ -221,6 +221,8 @@ CRUD jerárquico administrado por el admin, sobre las tablas ya existentes (migr
 - [x] Nav admin: nueva sección "Estructura".
 - [x] Esto **cierra el gap** de Fase 8: un fraccionamiento recién provisionado ya puede crear su estructura y, con ella, recibir registros de residentes de punta a punta.
 - [x] **Alta por grupos:** manzanas (varios nombres a la vez) y lotes (rango numérico con prefijo y estado, omitiendo los que ya existan). `createBlocksBulk`/`createLotsBulk` + `BulkBlocksDialog`/`BulkLotsDialog`. `StructureLevel` acepta `extraAction` para inyectar el botón.
+- [x] **Orden natural** en manzanas y lotes: `naturalCompare` (1,2,…,10 en vez de 1,10,2); `listBlocks`/`listLots` ordenan en el servidor y devuelven el arreglo completo. (El orden natural no se puede expresar en `.order()` de supabase-js.)
+- [x] **Paginación del lado del cliente** (a pedido del usuario) para estos listados acotados: `StructureLevel`/`LotList` cargan todo y paginan en memoria con `PaginationControls` (`components/shared`, controlado por estado) — cambio de página **instantáneo**, sin recargar ni loader. (`paginateArray` en `core/types` queda disponible para listados server-side.)
 
 ### Decisiones de Fase 9
 

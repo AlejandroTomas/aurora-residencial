@@ -14,11 +14,14 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PaginationControls } from "@/components/shared";
 import { LotFormDialog } from "./LotFormDialog";
 import { BulkLotsDialog } from "./BulkLotsDialog";
 import { setLotActiveAction } from "../actions";
 import { LOT_STATUS_LABELS } from "../constants";
 import type { LotDto } from "../types";
+
+const PAGE_SIZE = 20;
 
 export function LotList({
   lots,
@@ -30,6 +33,14 @@ export function LotList({
   const router = useRouter();
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
+  const [page, setPage] = useState(1);
+
+  const totalPages = Math.max(1, Math.ceil(lots.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const visibleLots = lots.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE,
+  );
 
   const toggle = (lot: LotDto) => {
     setPendingId(lot.id);
@@ -80,7 +91,7 @@ export function LotList({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {lots.map((lot) => {
+              {visibleLots.map((lot) => {
                 const busy = pendingId === lot.id;
                 return (
                   <TableRow key={lot.id}>
@@ -127,6 +138,12 @@ export function LotList({
           </Table>
         </div>
       )}
+
+      <PaginationControls
+        page={safePage}
+        totalPages={totalPages}
+        onChange={setPage}
+      />
     </div>
   );
 }

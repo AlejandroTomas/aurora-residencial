@@ -15,11 +15,14 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PaginationControls } from "@/components/shared";
 import type { ActionResult } from "@/core/types";
 import { NamedNodeDialog } from "./NamedNodeDialog";
 import type { NamedNode } from "../types";
 
 type NodeAction = (input: unknown) => Promise<ActionResult<unknown>>;
+
+const PAGE_SIZE = 20;
 
 /**
  * Nivel genérico de la jerarquía para entidades con nombre (etapa/calle/manzana): lista +
@@ -52,6 +55,14 @@ export function StructureLevel({
   const router = useRouter();
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
+  const [page, setPage] = useState(1);
+
+  const totalPages = Math.max(1, Math.ceil(nodes.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const visibleNodes = nodes.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE,
+  );
 
   const toggle = (node: NamedNode) => {
     setPendingId(node.id);
@@ -103,7 +114,7 @@ export function StructureLevel({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {nodes.map((node) => {
+              {visibleNodes.map((node) => {
                 const busy = pendingId === node.id;
                 return (
                   <TableRow key={node.id}>
@@ -156,6 +167,12 @@ export function StructureLevel({
           </Table>
         </div>
       )}
+
+      <PaginationControls
+        page={safePage}
+        totalPages={totalPages}
+        onChange={setPage}
+      />
     </div>
   );
 }
